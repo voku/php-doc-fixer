@@ -1,8 +1,3 @@
-[![Build Status](https://travis-ci.com/voku/php-doc-fixer.svg?branch=master)](https://travis-ci.com/voku/php-doc-fixer)
-[![Latest Stable Version](https://poser.pugx.org/voku/php-doc-fixer/v/stable)](https://packagist.org/packages/voku/php-doc-fixer) 
-[![License](https://poser.pugx.org/voku/php-doc-fixer/license)](https://packagist.org/packages/voku/php-doc-fixer)
-[![Donate to this project using Paypal](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.me/moelleken)
-[![Donate to this project using Patreon](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/voku)
 
 # ***PHP-Documentation-Check***
 
