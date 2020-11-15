@@ -16,7 +16,7 @@ final class PhpStormStubsReader
     /**
      * @return array
      *
-     * @phpstan-return array<string, array{return: string, params: array<string, string>}>
+     * @phpstan-return array<string, array{return: string, params?: array<string, string>}>
      */
     public function parse(): array
     {

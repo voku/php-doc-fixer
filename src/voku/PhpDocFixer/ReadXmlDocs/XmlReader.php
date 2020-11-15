@@ -16,7 +16,7 @@ final class XmlReader
     /**
      * @return array
      *
-     * @phpstan-return array<string, array{return: array<string, string>, params: array<string, array<string, string>}>
+     * @phpstan-return array<string, array{return: string, params?: array<string, string>}>
      */
     public function parse(): array
     {
@@ -58,7 +58,7 @@ final class XmlReader
     /**
      * @param \voku\helper\XmlDomParser $xmlParser
      *
-     * @phpstan-return array<string, array{return: string, params: array<string, string>>
+     * @phpstan-return array<string, array{return: string, params?: array<string, string>}>
      */
     private function findTypes(\voku\helper\XmlDomParser $xmlParser): array
     {
@@ -94,6 +94,7 @@ final class XmlReader
                     $data[$name]['params'][$paramName][$paramTypeText] = \ltrim($paramTypeText, '\\');
                 }
 
+                /** @phpstan-ignore-next-line TODO? */
                 $data[$name]['params'][$paramName] = \implode('|', $data[$name]['params'][$paramName] ?? []);
             }
         }

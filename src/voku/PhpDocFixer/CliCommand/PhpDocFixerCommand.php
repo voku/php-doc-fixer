@@ -29,7 +29,7 @@ final class PhpDocFixerCommand extends Command
             ->setDefinition(
                 new InputDefinition(
                     [
-                        new InputArgument('path', InputArgument::REQUIRED | InputArgument::IS_ARRAY, 'The path to analyse'),
+                        new InputArgument('path', InputArgument::REQUIRED, 'The path to analyse'),
                     ]
                 )
             );
@@ -37,24 +37,17 @@ final class PhpDocFixerCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $pathArray = $input->getArgument('path');
-        if (!$pathArray) {
-            // fallback
-            $pathArray = ['.'];
-        }
-        $realPath = null;
-        \assert(\is_array($pathArray));
-        foreach ($pathArray as $pathItem) {
-            $realPath = \realpath($pathItem);
-            \assert(\is_string($realPath));
+        $path = $input->getArgument('path');
+        \assert(\is_string($path));
+        $realPath = \realpath($path);
+        \assert(\is_string($realPath));
 
-            if (!$realPath || !\file_exists($realPath)) {
-                $output->writeln('-------------------------------');
-                $output->writeln('The path "' . $pathItem . '" does not exists.');
-                $output->writeln('-------------------------------');
+        if (!$realPath || !\file_exists($realPath)) {
+            $output->writeln('-------------------------------');
+            $output->writeln('The path "' . $path . '" does not exists.');
+            $output->writeln('-------------------------------');
 
-                return 2;
-            }
+            return 2;
         }
 
         $xmlReader = new \voku\PhpDocFixer\ReadXmlDocs\XmlReader($realPath);
@@ -80,7 +73,7 @@ final class PhpDocFixerCommand extends Command
             }
         }
 
-        $output->writeln($realPath);
+        $output->writeln(\count($errors) . ' ' . 'errors found');
 
         foreach ($errors as $name => $typesArray) {
             $output->writeln('----------------');
