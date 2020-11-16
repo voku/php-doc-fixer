@@ -6,13 +6,13 @@ namespace voku\PhpDocFixer;
 
 use Symfony\Component\Console\Application;
 
-require_once __DIR__ . "/../vendor/autoload.php";
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 (static function () {
     error_reporting(E_ALL);
     ini_set('display_errors', 'stderr');
 
-    \define('__PHPDOCFIXER_RUNNING__', true);
+    define('__PHPDOCFIXER_RUNNING__', true);
 
     $app = new Application('PhpDocFixer');
 
