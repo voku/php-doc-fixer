@@ -3,10 +3,10 @@
 
 This is a experiment! Lets check (maybe fix at some point) the php documentation automatically.
 
-```
-git clone https://github.com/php/doc-en
-git clone https://github.com/voku/php-doc-fixer
-cd php-doc-fixer
-composer install
+```bash
+git clone https://github.com/php/doc-en.git
+git clone https://github.com/voku/php-doc-fixer.git
+cd php-doc-fixer/
+composer update --prefer-dist
 php bin/phpdocfixer run ../doc-en/reference
 ```
