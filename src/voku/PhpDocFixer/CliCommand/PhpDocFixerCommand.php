@@ -68,7 +68,7 @@ final class PhpDocFixerCommand extends Command
             if ($phpStormStubsInfo[$functionName_or_classAndMethodName] !== $types) {
                 $errors[$functionName_or_classAndMethodName] = [
                     'phpStubTypes' => $phpStormStubsInfo[$functionName_or_classAndMethodName],
-                    'phpDocTypes' => $types,
+                    'phpDocTypes'  => $types,
                 ];
             }
         }
