@@ -17,14 +17,13 @@ jobs:
   fast_finish: true
   include:
     - php: 7.4
-    - php: 7.3
       after_script:
         - travis_retry composer require --no-interaction --prefer-dist --optimize-autoloader php-coveralls/php-coveralls
         - vendor/bin/php-coveralls -v
         - tools/ocular code-coverage:upload --format=php-clover build/logs/clover.xml
         - bash <(curl -s "https://codecov.io/bash") -Z
-    - php: 7.2
-    - php: nightly
+    - name: "PHP 8.0"
+      php: nightly
     - name: "Coding style"
       php: 7.4
       install: "skip"
@@ -34,10 +33,9 @@ jobs:
     - name: "Static analysis"
       php: 7.4
       install:
-        - travis_retry composer require --no-interaction --prefer-dist --optimize-autoloader phpstan/phpstan
-        - travis_retry composer require --no-interaction --prefer-dist --optimize-autoloader vimeo/psalm
+        - travis_retry composer require --no-interaction --prefer-dist --optimize-autoloader phpstan/phpstan vimeo/psalm
       script:
-        - php bin/phpdocfixer analyse src
+        - php bin/phpdocfixer run src/
         - vendor/bin/phpstan analyse
         - vendor/bin/psalm
     - name: "Compile PHAR"
