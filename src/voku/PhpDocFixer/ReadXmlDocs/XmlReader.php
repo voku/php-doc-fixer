@@ -27,6 +27,7 @@ final class XmlReader
         $finder->files()->in($this->xml_path);
 
         $data = [[]];
+        /** @var \Symfony\Component\Finder\SplFileInfo $file */
         foreach ($finder as $file) {
             if (\strpos($file->getFilename(), '.xml') === false) {
                 continue;
@@ -52,7 +53,7 @@ final class XmlReader
             }
         }
 
-        return \array_merge([], ...$data);
+        return \array_merge(...$data);
     }
 
     /**

@@ -33,10 +33,11 @@ final class PhpStormStubsReader
 
         foreach ($phpCode->getClasses() as $class) {
             $methodInfo = $class->getMethodsInfo();
+            $className = (string) $class->name;
             foreach ($methodInfo as $methodName => $info) {
-                $return[$class->name . '::' . $methodName]['return'] = \ltrim($info['returnTypes']['typeFromPhpDocSimple'] ?? '', '\\');
+                $return[$className . '::' . $methodName]['return'] = \ltrim($info['returnTypes']['typeFromPhpDocSimple'] ?? '', '\\');
                 foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
-                    $return[$class->name . '::' . $methodName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
+                    $return[$className . '::' . $methodName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
                 }
             }
         }
