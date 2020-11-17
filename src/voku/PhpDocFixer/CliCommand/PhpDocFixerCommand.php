@@ -32,6 +32,13 @@ final class PhpDocFixerCommand extends Command
                         new InputArgument('path', InputArgument::REQUIRED, 'The path to analyse'),
                     ]
                 )
+            )
+            ->addOption(
+                'auto-fix',
+                null,
+                \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
+                'Automatically fix the types in the given xml files. (false or true)',
+                'false'
             );
     }
 
@@ -42,6 +49,8 @@ final class PhpDocFixerCommand extends Command
         $realPath = \realpath($path);
         \assert(\is_string($realPath));
 
+        $autoFix = $input->getOption('auto-fix') !== 'false';
+
         if (!$realPath || !\file_exists($realPath)) {
             $output->writeln('-------------------------------');
             $output->writeln('The path "' . $path . '" does not exists.');
@@ -50,26 +59,39 @@ final class PhpDocFixerCommand extends Command
             return 2;
         }
 
-        $xmlReader = new \voku\PhpDocFixer\ReadXmlDocs\XmlReader($realPath);
+        $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
         $xmlDocInfo = $xmlReader->parse();
 
         $phpStormStubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
-        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\ReadPhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
+        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
         $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
 
         $errors = [];
         foreach ($xmlDocInfo as $functionName_or_classAndMethodName => $types) {
             if (!isset($phpStormStubsInfo[$functionName_or_classAndMethodName])) {
-                // TODO: check this
-                //\var_dump($functionName_or_classAndMethodName);
+                // TODO: error in phpstorm-stubs ?
+                //\var_dump($functionName_or_classAndMethodName); exit;
                 continue;
             }
 
-            if ($phpStormStubsInfo[$functionName_or_classAndMethodName] !== $types) {
+            if (
+                ($phpStormStubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
+                ||
+                ($phpStormStubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
+            ) {
+                $pathTmp = $types['absoluteFilePath'];
+                unset($types['absoluteFilePath']);
+
                 $errors[$functionName_or_classAndMethodName] = [
                     'phpStubTypes' => $phpStormStubsInfo[$functionName_or_classAndMethodName],
-                    'phpDocTypes' => $types,
+                    'phpDocTypes'  => $types,
+                    'path'         => $pathTmp,
                 ];
+
+                if ($autoFix) {
+                    $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
+                    $xmlFixer->fix($phpStormStubsInfo[$functionName_or_classAndMethodName]);
+                }
             }
         }
 

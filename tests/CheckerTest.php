@@ -9,12 +9,12 @@ namespace voku\tests;
  */
 final class CheckerTest extends \PHPUnit\Framework\TestCase
 {
-    public static function testPhpStormStubsReader()
+    public static function testPhpStormStubsReader(): void
     {
         $phpStormStubsPath = __DIR__ . '/../vendor/jetbrains/phpstorm-stubs/mbstring/';
-        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\ReadPhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
+        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
         $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
 
-        self::assertSame('int|false', $phpStormStubsInfo['mb_strpos']['return']);
+        static::assertSame('int|false', $phpStormStubsInfo['mb_strpos']['return']);
     }
 }

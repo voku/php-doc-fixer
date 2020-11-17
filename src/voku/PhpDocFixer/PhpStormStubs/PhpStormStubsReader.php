@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace voku\PhpDocFixer\ReadPhpStormStubs;
+namespace voku\PhpDocFixer\PhpStormStubs;
 
 final class PhpStormStubsReader
 {
