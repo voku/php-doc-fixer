@@ -46,6 +46,18 @@ final class PhpDocFixerCommand extends Command
                 \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
                 'Automatically convert e.g. int[] into array. (false or true)',
                 'false'
+            )->addOption(
+                'stubs-path',
+                null,
+                \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
+                'Overwrite the source of the stubs, by default we use PhpStorm Stubs via composer.',
+                ''
+            )->addOption(
+                'stubs-file-extension',
+                null,
+                \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
+                'Overwrite the default file extension for stubs.',
+                '.php'
             );
     }
 
@@ -58,6 +70,8 @@ final class PhpDocFixerCommand extends Command
 
         $autoFix = $input->getOption('auto-fix') !== 'false';
         $removeArrayValueInfo = $input->getOption('remove-array-value-info') !== 'false';
+        $stubsPath = $input->getOption('stubs-path');
+        $stubsFileExtension = $input->getOption('stubs-file-extension');
 
         if (!$realPath || !\file_exists($realPath)) {
             $output->writeln('-------------------------------');
@@ -70,38 +84,41 @@ final class PhpDocFixerCommand extends Command
         $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
         $xmlDocInfo = $xmlReader->parse();
 
-        $phpStormStubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
-        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader(
-            $phpStormStubsPath,
-            $removeArrayValueInfo
+        if (!$stubsPath) {
+            $stubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
+        }
+        $phpTypesFromStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader(
+            $stubsPath,
+            $removeArrayValueInfo,
+            $stubsFileExtension
         );
-        $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
+        $stubsInfo = $phpTypesFromStubs->parse();
 
         $errors = [];
         foreach ($xmlDocInfo as $functionName_or_classAndMethodName => $types) {
-            if (!isset($phpStormStubsInfo[$functionName_or_classAndMethodName])) {
-                // TODO: error in phpstorm-stubs ?
+            if (!isset($stubsInfo[$functionName_or_classAndMethodName])) {
+                // TODO: error in stubs?
                 //\var_dump($functionName_or_classAndMethodName); exit;
                 continue;
             }
 
             if (
-                ($phpStormStubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
+                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
                 ||
-                ($phpStormStubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
+                ($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
             ) {
                 $pathTmp = $types['absoluteFilePath'];
                 unset($types['absoluteFilePath']);
 
                 $errors[$functionName_or_classAndMethodName] = [
-                    'phpStubTypes' => $phpStormStubsInfo[$functionName_or_classAndMethodName],
+                    'phpStubTypes' => $stubsInfo[$functionName_or_classAndMethodName],
                     'phpDocTypes'  => $types,
                     'path'         => $pathTmp,
                 ];
 
                 if ($autoFix) {
                     $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
-                    $xmlFixer->fix($phpStormStubsInfo[$functionName_or_classAndMethodName]);
+                    $xmlFixer->fix($stubsInfo[$functionName_or_classAndMethodName]);
                 }
             }
         }

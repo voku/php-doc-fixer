@@ -2,18 +2,25 @@
 
 declare(strict_types=1);
 
-namespace voku\PhpDocFixer\PhpStormStubs;
+namespace voku\PhpDocFixer\PhpStubs;
 
-final class PhpStormStubsReader
+final class PhpStubsReader
 {
     private string $path;
 
     private bool $removeArrayValueInfo;
 
-    public function __construct(string $path, bool $removeArrayValueInfo = false)
+    private string $stubsFileExtension;
+
+    public function __construct(
+        string $path,
+        bool $removeArrayValueInfo = false,
+        string $stubsFileExtension = '.php'
+    )
     {
         $this->path = $path;
         $this->removeArrayValueInfo = $removeArrayValueInfo;
+        $this->stubsFileExtension = $stubsFileExtension;
     }
 
     /**
@@ -23,7 +30,12 @@ final class PhpStormStubsReader
      */
     public function parse(): array
     {
-        $phpCode = \voku\SimplePhpParser\Parsers\PhpCodeParser::getPhpFiles($this->path);
+        $phpCode = \voku\SimplePhpParser\Parsers\PhpCodeParser::getPhpFiles(
+            $this->path,
+            [],
+            [],
+            [$this->stubsFileExtension]
+        );
 
         $return = [];
         $functionInfo = $phpCode->getFunctionsInfo();

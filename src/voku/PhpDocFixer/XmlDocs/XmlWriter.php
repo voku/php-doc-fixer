@@ -104,12 +104,12 @@ final class XmlWriter
         $returnUnionNewCount = \count($returnUnionNew);
 
         if ($returnUnionNewCount === 0) {
-            // TODO: error in phpstorm-stubs ?
+            // TODO: error in stubs?
         } else {
             $returnUnionTypeFound = $xmlParser->findOneOrFalse('type.union') !== false;
 
             if ($returnUnionTypeFound && $returnUnionNewCount === 1) {
-                // TODO: error in phpstorm-stubs ?
+                // TODO: error in stubs?
             } else {
                 if ($returnUnionTypeFound) {
                     $xml = (string) \preg_replace('#<type class="union">.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
@@ -143,14 +143,14 @@ final class XmlWriter
                     $paramTypesNewCount = \count($paramTypesNew);
 
                     if ($paramTypesNewCount === 0) {
-                        // TODO: error in phpstorm-stubs ?
+                        // TODO: error in stubs?
                         continue;
                     }
 
                     $paramUnionTypeFound = $param->findOneOrFalse('type.union') !== false;
 
                     if ($paramUnionTypeFound && $paramTypesNewCount === 1) {
-                        // TODO: error in phpstorm-stubs ?
+                        // TODO: error in stubs?
                         continue;
                     }
 

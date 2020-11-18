@@ -9,11 +9,11 @@ namespace voku\tests;
  */
 final class CheckerTest extends \PHPUnit\Framework\TestCase
 {
-    public static function testPhpStormStubsReader(): void
+    public static function testPhpStubsReader(): void
     {
-        $phpStormStubsPath = __DIR__ . '/../vendor/jetbrains/phpstorm-stubs/mbstring/';
-        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
-        $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
+        $PhpStubsPath = __DIR__ . '/../vendor/jetbrains/phpstorm-stubs/mbstring/';
+        $phpTypesFromPhpStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader($PhpStubsPath);
+        $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
 
         $expected = [
             'return' => 'int|false',
@@ -25,7 +25,7 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
             ],
         ];
 
-        static::assertSame($expected, $phpStormStubsInfo['mb_strpos']);
+        static::assertSame($expected, $PhpStubsInfo['mb_strpos']);
     }
 
     public static function testPhpDocXmlReader(): void
