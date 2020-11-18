@@ -8,9 +8,12 @@ final class PhpStormStubsReader
 {
     private string $path;
 
-    public function __construct(string $path)
+    private bool $removeArrayValueInfo;
+
+    public function __construct(string $path, bool $removeArrayValueInfo = false)
     {
         $this->path = $path;
+        $this->removeArrayValueInfo = $removeArrayValueInfo;
     }
 
     /**
@@ -26,8 +29,14 @@ final class PhpStormStubsReader
         $functionInfo = $phpCode->getFunctionsInfo();
         foreach ($functionInfo as $functionName => $info) {
             $return[$functionName]['return'] = \ltrim($info['returnTypes']['typeFromPhpDocSimple'] ?? '', '\\');
+            if ($this->removeArrayValueInfo) {
+                $return[$functionName]['return'] = $this->removeArrayValueInfo($return[$functionName]['return']);
+            }
             foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
                 $return[$functionName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
+                if ($this->removeArrayValueInfo) {
+                    $return[$functionName]['params'][$paramName] = $this->removeArrayValueInfo($return[$functionName]['params'][$paramName]);
+                }
             }
         }
 
@@ -36,12 +45,28 @@ final class PhpStormStubsReader
             $className = (string) $class->name;
             foreach ($methodInfo as $methodName => $info) {
                 $return[$className . '::' . $methodName]['return'] = \ltrim($info['returnTypes']['typeFromPhpDocSimple'] ?? '', '\\');
+                if ($this->removeArrayValueInfo) {
+                    $return[$className . '::' . $methodName]['return'] = $this->removeArrayValueInfo($return[$className . '::' . $methodName]['return']);
+                }
                 foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
                     $return[$className . '::' . $methodName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
+                    if ($this->removeArrayValueInfo) {
+                        $return[$className . '::' . $methodName]['params'][$paramName] = $this->removeArrayValueInfo($return[$className . '::' . $methodName]['params'][$paramName]);
+                    }
                 }
             }
         }
 
         return $return;
+    }
+
+    /**
+     * @param string $phpdoc_type
+     *
+     * @return string
+     */
+    public function removeArrayValueInfo(string $phpdoc_type): string
+    {
+        return (string) \preg_replace('#([\w_]*\[\])#', 'array', $phpdoc_type);
     }
 }

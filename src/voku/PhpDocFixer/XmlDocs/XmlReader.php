@@ -28,7 +28,12 @@ final class XmlReader
         $xmlParser->autoRemoveXPathNamespaces();
 
         $finder = new \Symfony\Component\Finder\Finder();
-        $finder->files()->in($this->xml_path);
+
+        if (\file_exists($this->xml_path) && !\is_dir($this->xml_path)) {
+            $finder->files()->in(\dirname($this->xml_path))->name(\basename($this->xml_path));
+        } else {
+            $finder->files()->in($this->xml_path);
+        }
 
         $data = [[]];
         foreach ($finder as $file) {
@@ -40,12 +45,15 @@ final class XmlReader
             $absoluteFilePath = $file->getPath() . \DIRECTORY_SEPARATOR . $fileName;
             $content = $file->getContents();
 
+            $contentMethodKeyword = 'methodsynopsis';
             \preg_match('#<methodsynopsis>.*</methodsynopsis>#Uis', $content, $contentMethod);
             $contentMethod = $contentMethod[0] ?? null;
 
+            $contentMethodOopKeyword = 'methodsynopsis';
             \preg_match('#<methodsynopsis role="oop">.*</methodsynopsis>#Uis', $content, $contentMethodOop);
             $contentMethodOop = $contentMethodOop[0] ?? null;
 
+            $contentConstructorKeyword = 'constructorsynopsis';
             \preg_match('#<constructorsynopsis>.*</constructorsynopsis>#Uis', $content, $contentConstructor);
             $contentConstructor = $contentConstructor[0] ?? null;
 
@@ -55,17 +63,17 @@ final class XmlReader
 
             if ($contentMethod) {
                 $methodsynopsis = $xmlParser->loadXml($contentMethod);
-                $data[] = $this->findTypes($methodsynopsis, $absoluteFilePath);
+                $data[] = $this->findTypes($methodsynopsis, $absoluteFilePath, $contentMethodKeyword);
             }
 
             if ($contentMethodOop) {
                 $methodsynopsisOop = $xmlParser->loadXml($contentMethodOop);
-                $data[] = $this->findTypes($methodsynopsisOop, $absoluteFilePath);
+                $data[] = $this->findTypes($methodsynopsisOop, $absoluteFilePath, $contentMethodOopKeyword);
             }
 
             if ($contentConstructor) {
                 $constructorsynopsis = $xmlParser->loadXml($contentConstructor);
-                $data[] = $this->findTypes($constructorsynopsis, $absoluteFilePath);
+                $data[] = $this->findTypes($constructorsynopsis, $absoluteFilePath, $contentConstructorKeyword);
             }
         }
 
@@ -75,6 +83,7 @@ final class XmlReader
     /**
      * @param \voku\helper\XmlDomParser $xmlParser
      * @param string                    $absoluteFilePath
+     * @param string                    $xmlWrapperElement
      *
      * @return array
      *
@@ -86,22 +95,23 @@ final class XmlReader
      */
     private function findTypes(
         \voku\helper\XmlDomParser $xmlParser,
-        string $absoluteFilePath
+        string $absoluteFilePath,
+        string $xmlWrapperElement
     ): array {
         // init
         $data = [];
 
-        $name = $xmlParser->findOne('//methodname')->text();
+        $name = $xmlParser->findOne('methodname')->text();
         $data[$name]['absoluteFilePath'] = $absoluteFilePath;
 
         $returnTypesArray = [];
-        $returnTypesTmp = $xmlParser->findMultiOrFalse('type.union type');
+        $returnTypesTmp = $xmlParser->findMultiOrFalse($xmlWrapperElement . ' > type.union > type');
         if ($returnTypesTmp !== false) {
             foreach ($returnTypesTmp as $returnTypeTmp) {
                 $returnTypeText = $returnTypeTmp->text();
                 $returnTypesArray[$returnTypeText] = \ltrim($returnTypeText, '\\');
             }
-        } elseif (($returnTypeTmp = $xmlParser->findOneOrFalse('type')) !== false) {
+        } elseif (($returnTypeTmp = $xmlParser->findOneOrFalse($xmlWrapperElement . ' > type')) !== false) {
             $returnTypeText = $returnTypeTmp->text();
             $returnTypesArray[$returnTypeText] = \ltrim($returnTypeText, '\\');
         }
@@ -113,7 +123,7 @@ final class XmlReader
                 $paramName = $param->findOne('parameter')->text();
                 $paramTypesArray = [];
 
-                $paramTypesTmp = $param->findMultiOrFalse('type.union type');
+                $paramTypesTmp = $param->findMultiOrFalse('type.union > type');
                 if ($paramTypesTmp !== false) {
                     foreach ($paramTypesTmp as $paramTypeTmp) {
                         $paramTypeText = $paramTypeTmp->text();

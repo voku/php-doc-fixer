@@ -15,6 +15,37 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
         $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
 
-        static::assertSame('int|false', $phpStormStubsInfo['mb_strpos']['return']);
+        $expected = [
+            'return' => 'int|false',
+            'params' => [
+                'haystack' => 'string',
+                'needle'   => 'string',
+                'offset'   => 'int',
+                'encoding' => 'string',
+            ],
+        ];
+
+        static::assertSame($expected, $phpStormStubsInfo['mb_strpos']);
+    }
+
+    public static function testPhpDocXmlReader(): void
+    {
+        $xmlPath = __DIR__ . '/fixtures/bcpow.xml';
+        $phpDocXmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($xmlPath);
+        $phpDocXmlReaderInfo = $phpDocXmlReader->parse();
+
+        $expected = [
+            'bcpow' => [
+                'absoluteFilePath' => '/home/lmoelleken/testing/git/php-doc-fixer/tests/fixtures/bcpow.xml',
+                'return'           => 'string',
+                'params'           => [
+                    'num'      => 'string',
+                    'exponent' => 'string',
+                    'scale'    => 'int|null',
+                ],
+            ],
+        ];
+
+        static::assertSame($expected, $phpDocXmlReaderInfo);
     }
 }

@@ -39,6 +39,13 @@ final class PhpDocFixerCommand extends Command
                 \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
                 'Automatically fix the types in the given xml files. (false or true)',
                 'false'
+            )
+            ->addOption(
+                'remove-array-value-info',
+                null,
+                \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
+                'Automatically convert e.g. int[] into array. (false or true)',
+                'false'
             );
     }
 
@@ -50,6 +57,7 @@ final class PhpDocFixerCommand extends Command
         \assert(\is_string($realPath));
 
         $autoFix = $input->getOption('auto-fix') !== 'false';
+        $removeArrayValueInfo = $input->getOption('remove-array-value-info') !== 'false';
 
         if (!$realPath || !\file_exists($realPath)) {
             $output->writeln('-------------------------------');
@@ -63,7 +71,10 @@ final class PhpDocFixerCommand extends Command
         $xmlDocInfo = $xmlReader->parse();
 
         $phpStormStubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
-        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader($phpStormStubsPath);
+        $phpTypesFromPhpStormStubs = new \voku\PhpDocFixer\PhpStormStubs\PhpStormStubsReader(
+            $phpStormStubsPath,
+            $removeArrayValueInfo
+        );
         $phpStormStubsInfo = $phpTypesFromPhpStormStubs->parse();
 
         $errors = [];
