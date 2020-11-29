@@ -44,6 +44,10 @@ final class PhpStubsReader
             if ($this->removeArrayValueInfo) {
                 $return[$functionName]['return'] = $this->removeArrayValueInfo($return[$functionName]['return']);
             }
+            if ($return[$functionName]['return'] === '') {
+                $return[$functionName]['return'] = 'void';
+            }
+
             foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
                 $return[$functionName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
                 if ($this->removeArrayValueInfo) {
@@ -60,6 +64,10 @@ final class PhpStubsReader
                 if ($this->removeArrayValueInfo) {
                     $return[$className . '::' . $methodName]['return'] = $this->removeArrayValueInfo($return[$className . '::' . $methodName]['return']);
                 }
+                if ($return[$className . '::' . $methodName]['return'] === '') {
+                    $return[$className . '::' . $methodName]['return'] = 'void';
+                }
+
                 foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
                     $return[$className . '::' . $methodName]['params'][$paramName] = \ltrim($paramTypes['typeFromPhpDocSimple'] ?? '', '\\');
                     if ($this->removeArrayValueInfo) {

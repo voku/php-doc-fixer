@@ -19,6 +19,9 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
     /** @noinspection UnusedFunctionResultInspection */
     $app->add(new \voku\PhpDocFixer\CliCommand\PhpDocFixerCommand());
 
+    /** @noinspection UnusedFunctionResultInspection */
+    $app->add(new \voku\PhpDocFixer\CliCommand\PhpStanFixerCommand());
+
     /** @noinspection PhpUnhandledExceptionInspection */
     $app->run();
 })();
