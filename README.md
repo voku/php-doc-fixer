@@ -6,8 +6,8 @@ This is a experiment! Lets check and fix the php documentation automatically.
 ### install
 ```bash
 git clone https://github.com/php/doc-en.git
-git clone https://github.com/php/php-src.git // optional: by default we use the PhpStorm Stubs
-git clone https://github.com/phpstan/phpstan-src.git // optional: only needed if you will check stubs from phpstan
+git clone https://github.com/php/php-src.git # optional: by default we use the PhpStorm Stubs
+git clone https://github.com/phpstan/phpstan-src.git # optional: only needed if you will check stubs from phpstan
 git clone https://github.com/voku/php-doc-fixer.git
 cd php-doc-fixer/
 composer update --prefer-dist
