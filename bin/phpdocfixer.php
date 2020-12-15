@@ -20,7 +20,7 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
     $app->add(new \voku\PhpDocFixer\CliCommand\PhpDocFixerCommand());
 
     /** @noinspection UnusedFunctionResultInspection */
-    $app->add(new \voku\PhpDocFixer\CliCommand\PhpStanFixerCommand());
+    $app->add(new \voku\PhpDocFixer\CliCommand\StaticAnalysisFixerCommand());
 
     /** @noinspection PhpUnhandledExceptionInspection */
     $app->run();

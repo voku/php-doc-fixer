@@ -16,12 +16,12 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
 
         $expected = [
-            'return' => 'int|false',
+            'return' => 'false|int',
             'params' => [
                 'haystack' => 'string',
                 'needle'   => 'string',
                 'offset'   => 'int',
-                'encoding' => 'string',
+                'encoding' => 'null|string',
             ],
         ];
 
@@ -32,11 +32,11 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
     {
         $xmlPath = __DIR__ . '/fixtures/bcpow.xml';
         $phpDocXmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($xmlPath);
-        $phpDocXmlReaderInfo = $phpDocXmlReader->parse();
+        $phpDocXmlReaderInfo = self::removeLocalPathForTheTest($phpDocXmlReader->parse());
 
         $expected = [
             'bcpow' => [
-                'absoluteFilePath' => '/home/lmoelleken/testing/git/php-doc-fixer/tests/fixtures/bcpow.xml',
+                'absoluteFilePath' => 'php-doc-fixer/tests/fixtures/bcpow.xml',
                 'return'           => 'string',
                 'params'           => [
                     'num'      => 'string',
@@ -47,5 +47,38 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         ];
 
         static::assertSame($expected, $phpDocXmlReaderInfo);
+    }
+
+    /**
+     * @param array $result
+     *
+     * @return array
+     */
+    public static function removeLocalPathForTheTest(array $result): array
+    {
+        // hack for CI
+        $pathReplace = \realpath(\getcwd() . '/../') . '/';
+        if (!\is_array($result)) {
+            return $result;
+        }
+
+        $helper = [];
+        foreach ($result as $key => $value) {
+            if (\is_string($key)) {
+                $key = (string) \str_replace($pathReplace, '', $key);
+            }
+
+            if (\is_array($value)) {
+                $helper[$key] = self::removeLocalPathForTheTest($value);
+            } else {
+                if (\is_string($value)) {
+                    $helper[$key] = \str_replace($pathReplace, '', $value);
+                } else {
+                    $helper[$key] = $value;
+                }
+            }
+        }
+
+        return $helper;
     }
 }

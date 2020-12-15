@@ -12,9 +12,9 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class PhpStanFixerCommand extends Command
+final class StaticAnalysisFixerCommand extends Command
 {
-    public const COMMAND_NAME = 'phpstan';
+    public const COMMAND_NAME = 'static_analysis';
 
     public function __construct()
     {
@@ -25,7 +25,7 @@ final class PhpStanFixerCommand extends Command
     {
         $this
             ->setName(self::COMMAND_NAME)
-            ->setDescription('Try to fix types in the phpstan stubs.')
+            ->setDescription('Try to find type errors from static code analysis stubs.')
             ->setDefinition(
                 new InputDefinition(
                     [
@@ -73,7 +73,7 @@ final class PhpStanFixerCommand extends Command
             return 2;
         }
 
-        $phpTypesSource = new \voku\PhpDocFixer\PhpStanStubs\PhpStanReader($realPath);
+        $phpTypesSource = new \voku\PhpDocFixer\StaticCodeAnalysisStubs\StaticCodeAnalysisReader($realPath);
         $phpTypesSourceInfo = $phpTypesSource->parse();
 
         if (!$stubsPath) {

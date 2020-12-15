@@ -117,6 +117,10 @@ final class XmlReader
         }
         $data[$name]['return'] = \implode('|', $returnTypesArray ?? []);
 
+        $data[$name]['return'] = explode('|', $data[$name]['return']);
+        sort($data[$name]['return']);
+        $data[$name]['return'] = implode('|', $data[$name]['return']);
+
         $params = $xmlParser->findMultiOrFalse('//methodparam');
         if ($params !== false) {
             foreach ($params as $param) {
@@ -135,6 +139,10 @@ final class XmlReader
                 }
 
                 $data[$name]['params'][$paramName] = \implode('|', $paramTypesArray ?? []);
+
+                $data[$name]['params'][$paramName] = explode('|', $data[$name]['params'][$paramName]);
+                sort($data[$name]['params'][$paramName]);
+                $data[$name]['params'][$paramName] = implode('|', $data[$name]['params'][$paramName]);
             }
         }
 
