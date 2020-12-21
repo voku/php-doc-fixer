@@ -25,6 +25,11 @@ php bin/phpdocfixer static_analysis [--remove-array-value-info="true"] [--stubs-
 php bin/phpdocfixer static_analysis --remove-array-value-info="true" --stubs-path="../php-src/" --stubs-file-extension=".stub.php" ../phpstan-src/resources/functionMap.php
 ```
 
+#### example: check types from phpstorm-stubs (mysqli) against static code analysis stubs from PHPStan
+```
+php bin/phpdocfixer static_analysis --stubs-path=../phpstorm-stubs/mysqli/ ../phpstan-src/resources/functionMap.php
+```
+
 #### example: check types from PhpStorm stubs against static code analysis stubs from Psalm
 ```
 php bin/phpdocfixer static_analysis ../psalm/src/Psalm/Internal/CallMap.php

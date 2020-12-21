@@ -42,13 +42,17 @@ final class PhpStubsReader
         foreach ($functionInfo as $functionName => $info) {
 
             $returnTypeTmp = explode('|', $info['returnTypes']['typeFromPhpDocSimple'] ?? '');
+            foreach ($returnTypeTmp as &$returnTypeInnerTmp) {
+                if ($this->removeArrayValueInfo) {
+                    $returnTypeInnerTmp = $this->removeArrayValueInfo($returnTypeInnerTmp);
+                }
+
+                $returnTypeInnerTmp = \ltrim($returnTypeInnerTmp, '\\');
+            }
             sort($returnTypeTmp);
             $returnTypeTmp = implode('|', $returnTypeTmp);
 
-            $return[$functionName]['return'] = \ltrim($returnTypeTmp, '\\');
-            if ($this->removeArrayValueInfo) {
-                $return[$functionName]['return'] = $this->removeArrayValueInfo($return[$functionName]['return']);
-            }
+            $return[$functionName]['return'] = $returnTypeTmp;
             if ($return[$functionName]['return'] === '') {
                 $return[$functionName]['return'] = 'void';
             }
@@ -56,13 +60,17 @@ final class PhpStubsReader
             foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
 
                 $paramTypeTmp = explode('|', $paramTypes['typeFromPhpDocSimple'] ?? '');
+                foreach ($paramTypeTmp as &$paramTypeInnerTmp) {
+                    if ($this->removeArrayValueInfo) {
+                        $paramTypeInnerTmp = $this->removeArrayValueInfo($paramTypeInnerTmp);
+                    }
+
+                    $paramTypeInnerTmp = \ltrim($paramTypeInnerTmp, '\\');
+                }
                 sort($paramTypeTmp);
                 $paramTypeTmp = implode('|', $paramTypeTmp);
 
-                $return[$functionName]['params'][$paramName] = \ltrim($paramTypeTmp, '\\');
-                if ($this->removeArrayValueInfo) {
-                    $return[$functionName]['params'][$paramName] = $this->removeArrayValueInfo($return[$functionName]['params'][$paramName]);
-                }
+                $return[$functionName]['params'][$paramName] = $paramTypeTmp;
             }
         }
 
@@ -72,13 +80,17 @@ final class PhpStubsReader
             foreach ($methodInfo as $methodName => $info) {
 
                 $returnTypeTmp = explode('|', $info['returnTypes']['typeFromPhpDocSimple'] ?? '');
+                foreach ($returnTypeTmp as &$returnTypeInnerTmp) {
+                    if ($this->removeArrayValueInfo) {
+                        $returnTypeInnerTmp = $this->removeArrayValueInfo($returnTypeInnerTmp);
+                    }
+
+                    $returnTypeInnerTmp = \ltrim($returnTypeInnerTmp, '\\');
+                }
                 sort($returnTypeTmp);
                 $returnTypeTmp = implode('|', $returnTypeTmp);
 
-                $return[$className . '::' . $methodName]['return'] = \ltrim($returnTypeTmp, '\\');
-                if ($this->removeArrayValueInfo) {
-                    $return[$className . '::' . $methodName]['return'] = $this->removeArrayValueInfo($return[$className . '::' . $methodName]['return']);
-                }
+                $return[$className . '::' . $methodName]['return'] = $returnTypeTmp;
                 if ($return[$className . '::' . $methodName]['return'] === '') {
                     $return[$className . '::' . $methodName]['return'] = 'void';
                 }
@@ -86,13 +98,17 @@ final class PhpStubsReader
                 foreach ($info['paramsTypes'] as $paramName => $paramTypes) {
 
                     $paramTypeTmp = explode('|', $paramTypes['typeFromPhpDocSimple'] ?? '');
+                    foreach ($paramTypeTmp as &$paramTypeInnerTmp) {
+                        if ($this->removeArrayValueInfo) {
+                            $paramTypeInnerTmp = $this->removeArrayValueInfo($paramTypeInnerTmp);
+                        }
+
+                        $paramTypeInnerTmp = \ltrim($paramTypeInnerTmp, '\\');
+                    }
                     sort($paramTypeTmp);
                     $paramTypeTmp = implode('|', $paramTypeTmp);
 
-                    $return[$className . '::' . $methodName]['params'][$paramName] = \ltrim($paramTypeTmp, '\\');
-                    if ($this->removeArrayValueInfo) {
-                        $return[$className . '::' . $methodName]['params'][$paramName] = $this->removeArrayValueInfo($return[$className . '::' . $methodName]['params'][$paramName]);
-                    }
+                    $return[$className . '::' . $methodName]['params'][$paramName] = $paramTypeTmp;
                 }
             }
         }

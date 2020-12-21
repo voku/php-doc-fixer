@@ -42,13 +42,17 @@ final class StaticCodeAnalysisReader
             }
 
             $returnType = explode('|', $returnType);
+            foreach ($returnType as &$returnTypeInnerTmp) {
+                if ($this->removeArrayValueInfo) {
+                    $returnTypeInnerTmp = $this->removeArrayValueInfo($returnTypeInnerTmp);
+                }
+
+                $returnTypeInnerTmp = \ltrim($returnTypeInnerTmp, '\\');
+            }
             sort($returnType);
             $returnType = implode('|', $returnType);
 
-            $return[$functionName]['return'] = \ltrim($returnType, '\\');
-            if ($this->removeArrayValueInfo) {
-                $return[$functionName]['return'] = $this->removeArrayValueInfo($return[$functionName]['return']);
-            }
+            $return[$functionName]['return'] = $returnType;
             if ($return[$functionName]['return'] === '') {
                 $return[$functionName]['return'] = 'void';
             }
@@ -60,14 +64,17 @@ final class StaticCodeAnalysisReader
                 }
 
                 $paramTypes = explode('|', $paramTypes);
+                foreach ($paramTypes as &$paramTypeInnerTmp) {
+                    if ($this->removeArrayValueInfo) {
+                        $paramTypeInnerTmp = $this->removeArrayValueInfo($paramTypeInnerTmp);
+                    }
+
+                    $paramTypeInnerTmp = \ltrim($paramTypeInnerTmp, '\\');
+                }
                 sort($paramTypes);
                 $paramTypes = implode('|', $paramTypes);
 
-
-                $return[$functionName]['params'][$paramName] = \ltrim($paramTypes ?? '', '\\');
-                if ($this->removeArrayValueInfo) {
-                    $return[$functionName]['params'][$paramName] = $this->removeArrayValueInfo($return[$functionName]['params'][$paramName]);
-                }
+                $return[$functionName]['params'][$paramName] = $paramTypes ?? '';
             }
         }
 

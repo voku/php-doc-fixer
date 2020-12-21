@@ -100,8 +100,8 @@ final class StaticAnalysisFixerCommand extends Command
                 (array_values($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? [])) !== (array_values($types['params'] ?? []))
             ) {
                 $errors[$functionName_or_classAndMethodName] = [
-                    'phpStubTypes' => $stubsInfo[$functionName_or_classAndMethodName],
-                    'phpStanTypes'  => $types,
+                    'phpStubTypes'           => $stubsInfo[$functionName_or_classAndMethodName],
+                    'phpStaticAnalysisTypes' => $types,
                 ];
             }
         }
