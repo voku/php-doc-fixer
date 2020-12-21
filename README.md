@@ -27,7 +27,7 @@ php bin/phpdocfixer static_analysis --remove-array-value-info="true" --stubs-pat
 
 #### example: check types from phpstorm-stubs (mysqli) against static code analysis stubs from PHPStan
 ```
-php bin/phpdocfixer static_analysis --stubs-path=../phpstorm-stubs/mysqli/ ../phpstan-src/resources/functionMap.php
+php bin/phpdocfixer static_analysis --stubs-path="../phpstorm-stubs/mysqli/" ../phpstan-src/resources/functionMap.php
 ```
 
 #### example: check types from PhpStorm stubs against static code analysis stubs from Psalm
