@@ -274,4 +274,16 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertSame(Command::SUCCESS, $exitCode);
         static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
     }
+
+    public function testStaticAnalysisCommandNormalizesPhpStanPseudoTypesToNativeTypes(): void
+    {
+        $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/functionMap-phpstan-types.php',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/phpstan-types',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
 }

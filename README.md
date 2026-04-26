@@ -40,6 +40,8 @@ php bin/phpdocfixer static_analysis [--remove-array-value-info="true"] [--stubs-
 php bin/phpdocfixer static_analysis --remove-array-value-info="true" --stubs-path="../php-src/" --stubs-file-extension=".stub.php" ../phpstan-src/resources/functionMap.php
 ```
 
+The static-analysis flow also normalizes PHPStan-only pseudo-types such as `class-string<T>`, `list<T>`, array shapes, callable signatures, and `int-mask<...>` back to comparable native types before reporting mismatches.
+
 #### example: check types from phpstorm-stubs (mysqli) against static code analysis stubs from PHPStan
 ```
 php bin/phpdocfixer static_analysis --stubs-path="../phpstorm-stubs/mysqli/" ../phpstan-src/resources/functionMap.php
