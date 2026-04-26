@@ -146,6 +146,35 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testPhpDocFixerCommandAutoFixesUnionTypesToSingleTypes(): void
+    {
+        $tempDirectory = \sys_get_temp_dir() . '/php-doc-fixer-' . \bin2hex(\random_bytes(8));
+        static::assertTrue(\mkdir($tempDirectory, 0777, true));
+
+        $tempPath = $tempDirectory . '/union-to-single-invalid.xml';
+        static::assertTrue(\copy(__DIR__ . '/fixtures/union-to-single-invalid.xml', $tempPath));
+
+        try {
+            $commandTester = new CommandTester(new PhpDocFixerCommand());
+            $exitCode = $commandTester->execute([
+                'path' => $tempPath,
+                '--auto-fix' => 'true',
+                '--stubs-path' => __DIR__ . '/fixtures/stubs/union-to-single',
+            ]);
+
+            static::assertSame(Command::SUCCESS, $exitCode);
+            static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
+            static::assertStringContainsString('1 entries updated', $commandTester->getDisplay());
+            static::assertStringContainsString('0 errors remaining after auto-fix', $commandTester->getDisplay());
+            static::assertStringContainsString('<type>string</type><methodname>union_to_single</methodname>', (string) \file_get_contents($tempPath));
+            static::assertStringContainsString('<methodparam><type>int</type><parameter>value</parameter></methodparam>', (string) \file_get_contents($tempPath));
+            static::assertStringNotContainsString('<type class="union">', (string) \file_get_contents($tempPath));
+        } finally {
+            \unlink($tempPath);
+            \rmdir($tempDirectory);
+        }
+    }
+
     public function testPhpDocFixerCommandFailsForReferenceParamNameMismatch(): void
     {
         $commandTester = new CommandTester(new PhpDocFixerCommand());

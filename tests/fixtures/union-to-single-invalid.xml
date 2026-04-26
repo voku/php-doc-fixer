@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.union-to-single" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type class="union"><type>false</type><type>string</type></type><methodname>union_to_single</methodname>
+   <methodparam><type class="union"><type>int</type><type>null</type></type><parameter>value</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>

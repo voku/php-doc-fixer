@@ -139,24 +139,20 @@ final class XmlWriter
         } else {
             $returnUnionTypeFound = $xmlParser->findOneOrFalse('type.union') !== false;
 
-            if ($returnUnionTypeFound && $returnUnionNewCount === 1) {
-                // TODO: error in stubs?
-            } else {
-                if ($returnUnionTypeFound) {
-                    $xml = (string) \preg_replace('#<type class="union">.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
-                } elseif ($xmlParser->findOneOrFalse('type') !== false) {
-                    $xml = (string) \preg_replace('#<type>.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
-                }
+            if ($returnUnionTypeFound) {
+                $xml = (string) \preg_replace('#<type class="union">.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
+            } elseif ($xmlParser->findOneOrFalse('type') !== false) {
+                $xml = (string) \preg_replace('#<type>.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
+            }
 
-                if (\count($returnUnionNew) > 1) {
-                    $returnXmlTmp = '';
-                    foreach ($returnUnionNew as $returnUnionNewSingle) {
-                        $returnXmlTmp .= '<type>' . $returnUnionNewSingle . '</type>';
-                    }
-                    $xml = \str_replace('###NEW_TYPE###', '<type class="union">' . $returnXmlTmp . '</type>', $xml);
-                } else {
-                    $xml = \str_replace('###NEW_TYPE###', '<type>' . $returnUnionNew[0] . '</type>', $xml);
+            if (\count($returnUnionNew) > 1) {
+                $returnXmlTmp = '';
+                foreach ($returnUnionNew as $returnUnionNewSingle) {
+                    $returnXmlTmp .= '<type>' . $returnUnionNewSingle . '</type>';
                 }
+                $xml = \str_replace('###NEW_TYPE###', '<type class="union">' . $returnXmlTmp . '</type>', $xml);
+            } else {
+                $xml = \str_replace('###NEW_TYPE###', '<type>' . $returnUnionNew[0] . '</type>', $xml);
             }
         }
 
@@ -165,6 +161,7 @@ final class XmlWriter
             if ($params !== false) {
                 foreach ($params as $param) {
                     $paramName = $param->findOne('parameter')->text();
+                    $escapedParamName = \preg_quote($paramName, '#');
 
                     if (isset($newTypes['params'][$paramName])) {
                         $paramTypesNew = (array) \explode('|', $newTypes['params'][$paramName]);
@@ -180,15 +177,10 @@ final class XmlWriter
 
                     $paramUnionTypeFound = $param->findOneOrFalse('type.union') !== false;
 
-                    if ($paramUnionTypeFound && $paramTypesNewCount === 1) {
-                        // TODO: error in stubs?
-                        continue;
-                    }
-
                     if ($paramUnionTypeFound) {
-                        $xml = (string) \preg_replace('#<methodparam(.*)><type class="union">.*</type>' . $paramName . '#Usi', '<methodparam$1>###NEW_TYPE###' . $paramName, $xml);
+                        $xml = (string) \preg_replace('#<methodparam([^>]*)><type class="union">.*</type><parameter>' . $escapedParamName . '#Usi', '<methodparam$1>###NEW_TYPE###<parameter>' . $paramName, $xml);
                     } elseif ($param->findOneOrFalse('type') !== false) {
-                        $xml = (string) \preg_replace('#<methodparam(.*)><type>.*</type>' . $paramName . '#Usi', '<methodparam$1>###NEW_TYPE###' . $paramName, $xml);
+                        $xml = (string) \preg_replace('#<methodparam([^>]*)><type>.*</type><parameter>' . $escapedParamName . '#Usi', '<methodparam$1>###NEW_TYPE###<parameter>' . $paramName, $xml);
                     }
 
                     if ($paramTypesNewCount > 1) {
