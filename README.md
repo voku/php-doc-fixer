@@ -22,7 +22,7 @@ composer scan-docs -- ../doc-en/reference/
 composer fix-docs -- ../doc-en/reference/
 ```
 
-`fix-docs` re-checks the XML after updating files, so it exits successfully when all detected mismatches were applied automatically and reports the remaining count if manual follow-up is still needed.
+`fix-docs` re-checks the XML after updating files, so it exits successfully when all detected mismatches were applied automatically and reports the remaining count if manual follow-up is still needed. It can update both single types and union types in either direction when the XML synopsis and stub signature disagree.
 
 ### command for analysing static code analysis stubs (PHPStan, Psalm, ...)
 ```
