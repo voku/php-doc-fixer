@@ -16,11 +16,11 @@ final class XmlWriter
     /**
      * @param array $newTypes
      *
-     * @return void
+     * @return bool
      *
      * @phpstan-param array{return: string, params?: array<string, string>} $newTypes
      */
-    public function fix(array $newTypes, string $functionNameOrMethodName): void
+    public function fix(array $newTypes, string $functionNameOrMethodName): bool
     {
         $xmlParser = new \voku\helper\XmlDomParser();
         $xmlParser->autoRemoveXPathNamespaces();
@@ -35,7 +35,7 @@ final class XmlWriter
         $constructorSynopses = $this->findSynopsisXml($content, 'constructorsynopsis');
 
         if ($methodSynopses === [] && $constructorSynopses === []) {
-            return;
+            return false;
         }
 
         foreach ($methodSynopses as $methodSynopsisXml) {
@@ -62,7 +62,11 @@ final class XmlWriter
 
         if ($contentOrig !== $content) {
             \file_put_contents($this->xml_file_path, $content);
+
+            return true;
         }
+
+        return false;
     }
 
     /**

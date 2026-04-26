@@ -81,9 +81,6 @@ final class PhpDocFixerCommand extends Command
             return self::INVALID;
         }
 
-        $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
-        $xmlDocInfo = $xmlReader->parse();
-
         if (!$stubsPath) {
             $stubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
         }
@@ -94,6 +91,55 @@ final class PhpDocFixerCommand extends Command
         );
         $stubsInfo = $phpTypesFromStubs->parse();
 
+        $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
+        $xmlDocInfo = $xmlReader->parse();
+        $errors = $this->findErrors($xmlDocInfo, $stubsInfo);
+
+        $output->writeln(\count($errors) . ' ' . 'errors found');
+
+        if ($autoFix && $errors !== []) {
+            $updatedEntries = 0;
+            foreach ($errors as $functionName_or_classAndMethodName => $typesArray) {
+                $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($typesArray['path']);
+                if ($xmlFixer->fix($typesArray['phpStubTypes'], $functionName_or_classAndMethodName)) {
+                    $updatedEntries++;
+                }
+            }
+
+            $output->writeln($updatedEntries . ' entries updated');
+
+            $xmlDocInfo = (new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath))->parse();
+            $errors = $this->findErrors($xmlDocInfo, $stubsInfo);
+
+            $output->writeln(\count($errors) . ' ' . 'errors remaining after auto-fix');
+        }
+
+        foreach ($errors as $name => $typesArray) {
+            $output->writeln('----------------');
+            $output->writeln($name);
+            $output->writeln(\print_r($typesArray, true));
+            $output->writeln('----------------');
+        }
+
+        if ($errors !== []) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param array<string, array{return?: string, params?: array<string, string>, absoluteFilePath: string}> $xmlDocInfo
+     * @param array<string, array{return?: string, params?: array<string, string>}>                            $stubsInfo
+     *
+     * @return array<string, array{
+     *     phpStubTypes: array{return?: string, params?: array<string, string>},
+     *     phpDocTypes: array{return?: string, params?: array<string, string>},
+     *     path: string
+     * }>
+     */
+    private function findErrors(array $xmlDocInfo, array $stubsInfo): array
+    {
         $errors = [];
         foreach ($xmlDocInfo as $functionName_or_classAndMethodName => $types) {
             if (!isset($stubsInfo[$functionName_or_classAndMethodName])) {
@@ -115,27 +161,9 @@ final class PhpDocFixerCommand extends Command
                     'phpDocTypes'  => $types,
                     'path'         => $pathTmp,
                 ];
-
-                if ($autoFix) {
-                    $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
-                    $xmlFixer->fix($stubsInfo[$functionName_or_classAndMethodName], $functionName_or_classAndMethodName);
-                }
             }
         }
 
-        $output->writeln(\count($errors) . ' ' . 'errors found');
-
-        foreach ($errors as $name => $typesArray) {
-            $output->writeln('----------------');
-            $output->writeln($name);
-            $output->writeln(\print_r($typesArray, true));
-            $output->writeln('----------------');
-        }
-
-        if ($errors !== []) {
-            return self::FAILURE;
-        }
-
-        return self::SUCCESS;
+        return $errors;
     }
 }

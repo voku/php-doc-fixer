@@ -36,6 +36,11 @@
             "voku\\tests\\": "tests/"
         }
     },
+    "scripts": {
+        "test": "phpunit",
+        "scan-docs": "@php bin/phpdocfixer run",
+        "fix-docs": "@php bin/phpdocfixer run --auto-fix=true"
+    },
     "bin": [
         "bin/phpdocfixer"
     ]
