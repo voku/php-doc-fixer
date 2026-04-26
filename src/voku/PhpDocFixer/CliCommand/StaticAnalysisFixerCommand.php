@@ -70,7 +70,7 @@ final class StaticAnalysisFixerCommand extends Command
             $output->writeln('The path "' . $path . '" does not exists.');
             $output->writeln('-------------------------------');
 
-            return 2;
+            return self::INVALID;
         }
 
         $phpTypesSource = new \voku\PhpDocFixer\StaticCodeAnalysisStubs\StaticCodeAnalysisReader($realPath);
@@ -95,9 +95,9 @@ final class StaticAnalysisFixerCommand extends Command
             }
 
             if (
-                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
+                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? '') !== ($types['return'] ?? '')
                 ||
-                (array_values($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? [])) !== (array_values($types['params'] ?? []))
+                \array_values($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== \array_values($types['params'] ?? [])
             ) {
                 $errors[$functionName_or_classAndMethodName] = [
                     'phpStubTypes'           => $stubsInfo[$functionName_or_classAndMethodName],
@@ -115,6 +115,10 @@ final class StaticAnalysisFixerCommand extends Command
             $output->writeln('----------------');
         }
 
-        return 0;
+        if ($errors !== []) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
     }
 }

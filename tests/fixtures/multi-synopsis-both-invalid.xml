@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.multi-synopsis" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type>int</type><methodname>first_function</methodname>
+   <methodparam><type>string</type><parameter>input</parameter></methodparam>
+  </methodsynopsis>
+  <methodsynopsis role="oop">
+   <type>string</type><methodname>SecondClass::secondMethod</methodname>
+   <methodparam><type>int</type><parameter>count</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>

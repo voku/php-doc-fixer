@@ -28,6 +28,52 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         static::assertSame($expected, $PhpStubsInfo['mb_strpos']);
     }
 
+    public static function testPhpStubsReaderHandlesDeprecatedConstantsInCurrentStubs(): void
+    {
+        $PhpStubsPath = __DIR__ . '/../vendor/jetbrains/phpstorm-stubs/imap/';
+        $phpTypesFromPhpStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader($PhpStubsPath);
+
+        $deprecations = [];
+        \set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if (($severity & (\E_DEPRECATED | \E_USER_DEPRECATED)) !== 0) {
+                    $deprecations[] = $message;
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
+        } finally {
+            \restore_error_handler();
+        }
+
+        static::assertSame([], $deprecations);
+        static::assertSame('int', $PhpStubsInfo['imap_setflag_full']['params']['options']);
+    }
+
+    public static function testPhpStubsReaderNormalizesRefinedPhpDocTypes(): void
+    {
+        $PhpStubsPath = __DIR__ . '/fixtures/stubs/refined-phpdoc-types/';
+        $phpTypesFromPhpStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader($PhpStubsPath);
+        $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
+
+        $expected = [
+            'return' => 'false|int',
+            'params' => [
+                'value'    => 'string',
+                'callback' => 'callable',
+                'key'      => 'int|string',
+            ],
+        ];
+
+        static::assertSame($expected, $PhpStubsInfo['refined_phpdoc_types']);
+    }
+
     public static function testPhpDocXmlReader(): void
     {
         $xmlPath = __DIR__ . '/fixtures/bcpow.xml';
@@ -42,6 +88,32 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
                     'num'      => 'string',
                     'exponent' => 'string',
                     'scale'    => 'int|null',
+                ],
+            ],
+        ];
+
+        static::assertSame($expected, $phpDocXmlReaderInfo);
+    }
+
+    public static function testPhpDocXmlReaderParsesAllSupportedSynopsesInOneFile(): void
+    {
+        $xmlPath = __DIR__ . '/fixtures/multi-synopsis.xml';
+        $phpDocXmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($xmlPath);
+        $phpDocXmlReaderInfo = self::removeLocalPathForTheTest($phpDocXmlReader->parse());
+
+        $expected = [
+            'first_function' => [
+                'absoluteFilePath' => 'php-doc-fixer/tests/fixtures/multi-synopsis.xml',
+                'return'           => 'string',
+                'params'           => [
+                    'input' => 'string',
+                ],
+            ],
+            'SecondClass::secondMethod' => [
+                'absoluteFilePath' => 'php-doc-fixer/tests/fixtures/multi-synopsis.xml',
+                'return'           => 'int',
+                'params'           => [
+                    'count' => 'int',
                 ],
             ],
         ];

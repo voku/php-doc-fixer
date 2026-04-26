@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace voku\PhpDocFixer\StaticCodeAnalysisStubs;
 
+use voku\PhpDocFixer\Type\TypeNormalizer;
+
 final class StaticCodeAnalysisReader
 {
     private string $path;
@@ -35,22 +37,7 @@ final class StaticCodeAnalysisReader
         $return = [];
         foreach ($data as $functionName => $info) {
             $returnType = array_shift($info);
-
-            if (strpos($returnType, '?') !== false) {
-                $returnType = str_replace('?', '', $returnType);
-                $returnType .= '|null';
-            }
-
-            $returnType = explode('|', $returnType);
-            foreach ($returnType as &$returnTypeInnerTmp) {
-                if ($this->removeArrayValueInfo) {
-                    $returnTypeInnerTmp = $this->removeArrayValueInfo($returnTypeInnerTmp);
-                }
-
-                $returnTypeInnerTmp = \ltrim($returnTypeInnerTmp, '\\');
-            }
-            sort($returnType);
-            $returnType = implode('|', $returnType);
+            $returnType = $this->normalizeType((string) $returnType);
 
             $return[$functionName]['return'] = $returnType;
             if ($return[$functionName]['return'] === '') {
@@ -58,21 +45,7 @@ final class StaticCodeAnalysisReader
             }
 
             foreach ($info as $paramName => $paramTypes) {
-                if (strpos($paramTypes, '?') !== false) {
-                    $paramTypes = str_replace('?', '', $paramTypes);
-                    $paramTypes .= '|null';
-                }
-
-                $paramTypes = explode('|', $paramTypes);
-                foreach ($paramTypes as &$paramTypeInnerTmp) {
-                    if ($this->removeArrayValueInfo) {
-                        $paramTypeInnerTmp = $this->removeArrayValueInfo($paramTypeInnerTmp);
-                    }
-
-                    $paramTypeInnerTmp = \ltrim($paramTypeInnerTmp, '\\');
-                }
-                sort($paramTypes);
-                $paramTypes = implode('|', $paramTypes);
+                $paramTypes = $this->normalizeType($paramTypes);
 
                 $return[$functionName]['params'][$paramName] = $paramTypes ?? '';
             }
@@ -88,14 +61,11 @@ final class StaticCodeAnalysisReader
      */
     public function removeArrayValueInfo(string $phpdoc_type): string
     {
-        $phpdoc_type = (string) \preg_replace('#([\w_]*\[\])#', 'array', $phpdoc_type);
+        return TypeNormalizer::removeArrayValueInfo($phpdoc_type);
+    }
 
-        $phpdoc_type = (string) \preg_replace('#(array{.*})#', 'array', $phpdoc_type);
-
-        $phpdoc_type = (string) \preg_replace('#(array<.*>)#', 'array', $phpdoc_type);
-
-        $phpdoc_type = (string) \preg_replace('#(list<.*>)#', 'array', $phpdoc_type);
-
-        return $phpdoc_type;
+    private function normalizeType(string $type): string
+    {
+        return (new TypeNormalizer($this->removeArrayValueInfo))->normalize($type);
     }
 }

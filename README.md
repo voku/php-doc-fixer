@@ -12,8 +12,17 @@ git clone https://github.com/vimeo/psalm.git // optional: only if you want to ch
 git clone https://github.com/phpstan/phpstan-src.git // optional: only if you want to check it
 git clone https://github.com/voku/php-doc-fixer.git
 cd php-doc-fixer/
-composer update --prefer-dist
+composer install --prefer-dist
 ```
+
+### project shortcuts
+```bash
+composer test
+composer scan-docs -- ../doc-en/reference/
+composer fix-docs -- ../doc-en/reference/
+```
+
+`fix-docs` re-checks the XML after updating files, so it exits successfully when all detected mismatches were applied automatically and reports the remaining count if manual follow-up is still needed.
 
 ### command for analysing static code analysis stubs (PHPStan, Psalm, ...)
 ```
@@ -32,7 +41,7 @@ php bin/phpdocfixer static_analysis --stubs-path="../phpstorm-stubs/mysqli/" ../
 
 #### example: check types from PhpStorm stubs against static code analysis stubs from Psalm
 ```
-php bin/phpdocfixer static_analysis ../psalm/src/Psalm/Internal/CallMap.php
+php bin/phpdocfixer static_analysis ../psalm/dictionaries/CallMap_84.php
 ```
 
 
@@ -44,6 +53,12 @@ php bin/phpdocfixer run [--auto-fix="true"] [--remove-array-value-info="true"] [
 #### example: sync types from PhpStorm Stubs into the php-documentation
 ```
 php bin/phpdocfixer run --auto-fix="true" --remove-array-value-info="true" ../doc-en/reference/
+```
+
+#### example: run the full scan and then apply all directly fixable updates
+```
+composer scan-docs -- ../doc-en/reference/
+composer fix-docs -- ../doc-en/reference/
 ```
 
 #### example: sync types from php-src into the php-documentation, but only for BCMath (bc)

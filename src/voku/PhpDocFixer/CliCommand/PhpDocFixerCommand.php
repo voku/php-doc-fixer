@@ -78,11 +78,8 @@ final class PhpDocFixerCommand extends Command
             $output->writeln('The path "' . $path . '" does not exists.');
             $output->writeln('-------------------------------');
 
-            return 2;
+            return self::INVALID;
         }
-
-        $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
-        $xmlDocInfo = $xmlReader->parse();
 
         if (!$stubsPath) {
             $stubsPath = __DIR__ . '/../../../../vendor/jetbrains/phpstorm-stubs/';
@@ -94,6 +91,58 @@ final class PhpDocFixerCommand extends Command
         );
         $stubsInfo = $phpTypesFromStubs->parse();
 
+        $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
+        $xmlDocInfo = $xmlReader->parse();
+        $errors = $this->findErrors($xmlDocInfo, $stubsInfo);
+
+        $output->writeln(\count($errors) . ' ' . 'errors found');
+
+        if ($autoFix && $errors !== []) {
+            $updatedEntries = 0;
+            $errorsByPath = [];
+            foreach ($errors as $functionName_or_classAndMethodName => $typesArray) {
+                $errorsByPath[$typesArray['path']][$functionName_or_classAndMethodName] = $typesArray['phpStubTypes'];
+            }
+
+            foreach ($errorsByPath as $pathTmp => $typesByName) {
+                $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
+                $updatedEntries += $xmlFixer->fixMany($typesByName);
+            }
+
+            $output->writeln($updatedEntries . ' entries updated');
+
+            $xmlDocInfo = (new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath))->parse();
+            $errors = $this->findErrors($xmlDocInfo, $stubsInfo);
+
+            $output->writeln(\count($errors) . ' ' . 'errors remaining after auto-fix');
+        }
+
+        foreach ($errors as $name => $typesArray) {
+            $output->writeln('----------------');
+            $output->writeln($name);
+            $output->writeln(\print_r($typesArray, true));
+            $output->writeln('----------------');
+        }
+
+        if ($errors !== []) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param array<string, array{return?: string, params?: array<string, string>, absoluteFilePath: string}> $xmlDocInfo
+     * @param array<string, array{return?: string, params?: array<string, string>}>                            $stubsInfo
+     *
+     * @return array<string, array{
+     *     phpStubTypes: array{return?: string, params?: array<string, string>},
+     *     phpDocTypes: array{return?: string, params?: array<string, string>},
+     *     path: string
+     * }>
+     */
+    private function findErrors(array $xmlDocInfo, array $stubsInfo): array
+    {
         $errors = [];
         foreach ($xmlDocInfo as $functionName_or_classAndMethodName => $types) {
             if (!isset($stubsInfo[$functionName_or_classAndMethodName])) {
@@ -103,9 +152,9 @@ final class PhpDocFixerCommand extends Command
             }
 
             if (
-                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
+                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? '') !== ($types['return'] ?? '')
                 ||
-                (array_values($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? [])) !== (array_values($types['params'] ?? []))
+                ($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
             ) {
                 $pathTmp = $types['absoluteFilePath'];
                 unset($types['absoluteFilePath']);
@@ -115,23 +164,9 @@ final class PhpDocFixerCommand extends Command
                     'phpDocTypes'  => $types,
                     'path'         => $pathTmp,
                 ];
-
-                if ($autoFix) {
-                    $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
-                    $xmlFixer->fix($stubsInfo[$functionName_or_classAndMethodName]);
-                }
             }
         }
 
-        $output->writeln(\count($errors) . ' ' . 'errors found');
-
-        foreach ($errors as $name => $typesArray) {
-            $output->writeln('----------------');
-            $output->writeln($name);
-            $output->writeln(\print_r($typesArray, true));
-            $output->writeln('----------------');
-        }
-
-        return 0;
+        return $errors;
     }
 }
