@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace voku\PhpDocFixer\PhpStubs;
 
+use voku\PhpDocFixer\Type\TypeNormalizer;
+
 final class PhpStubsReader
 {
     private string $path;
@@ -109,32 +111,13 @@ final class PhpStubsReader
      */
     public function removeArrayValueInfo(string $phpdoc_type): string
     {
-        $phpdoc_type = (string) \preg_replace('#([\w_]*\[\])#', 'array', $phpdoc_type);
-
-        $phpdoc_type = (string) \preg_replace('#(array{.*})#', 'array', $phpdoc_type);
-
-        $phpdoc_type = (string) \preg_replace('#(array<.*>)#', 'array', $phpdoc_type);
-
-        $phpdoc_type = (string) \preg_replace('#(list<.*>)#', 'array', $phpdoc_type);
-
-        return $phpdoc_type;
+        return TypeNormalizer::removeArrayValueInfo($phpdoc_type);
     }
 
     private function normalizeType(?string $nativeType, ?string $phpDocType): string
     {
         $type = $nativeType ?? $phpDocType ?? '';
-        $typeTmp = explode('|', $type);
 
-        foreach ($typeTmp as &$typeInnerTmp) {
-            if ($this->removeArrayValueInfo) {
-                $typeInnerTmp = $this->removeArrayValueInfo($typeInnerTmp);
-            }
-
-            $typeInnerTmp = \ltrim($typeInnerTmp, '\\');
-        }
-
-        sort($typeTmp);
-
-        return implode('|', $typeTmp);
+        return (new TypeNormalizer($this->removeArrayValueInfo))->normalize($type);
     }
 }

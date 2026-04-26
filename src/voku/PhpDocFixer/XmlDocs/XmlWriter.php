@@ -23,51 +23,80 @@ final class XmlWriter
      */
     public function fix(array $newTypes, string $functionNameOrMethodName): bool
     {
-        $xmlParser = new \voku\helper\XmlDomParser();
-        $xmlParser->autoRemoveXPathNamespaces();
+        return $this->fixMany([$functionNameOrMethodName => $newTypes]) > 0;
+    }
 
+    /**
+     * @param array<string, array{return: string, params?: array<string, string>}> $newTypesByFunctionName
+     */
+    public function fixMany(array $newTypesByFunctionName): int
+    {
         $content = \file_get_contents($this->xml_file_path);
         if ($content === false) {
             throw new \InvalidArgumentException('Could not read the file: ' . $this->xml_file_path);
         }
         $contentOrig = $content;
 
+        [$content, $updatedEntries] = $this->replaceTypesInContent($content, $newTypesByFunctionName);
+
+        if ($updatedEntries > 0 && $contentOrig !== $content) {
+            \file_put_contents($this->xml_file_path, $content);
+        }
+
+        return $updatedEntries;
+    }
+
+    /**
+     * @param array<string, array{return: string, params?: array<string, string>}> $newTypesByFunctionName
+     *
+     * @return array{0: string, 1: int}
+     */
+    private function replaceTypesInContent(string $content, array $newTypesByFunctionName): array
+    {
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->autoRemoveXPathNamespaces();
+
         $methodSynopses = $this->findSynopsisXml($content, 'methodsynopsis');
         $constructorSynopses = $this->findSynopsisXml($content, 'constructorsynopsis');
 
         if ($methodSynopses === [] && $constructorSynopses === []) {
-            return false;
+            return [$content, 0];
         }
 
+        $updatedEntries = [];
         foreach ($methodSynopses as $methodSynopsisXml) {
             $methodsynopsis = $xmlParser->loadXml($methodSynopsisXml);
-            if ($methodsynopsis->findOne('methodname')->text() !== $functionNameOrMethodName) {
+            $functionNameOrMethodName = $methodsynopsis->findOne('methodname')->text();
+            if (!isset($newTypesByFunctionName[$functionNameOrMethodName])) {
                 continue;
             }
 
-            $newTypesXml = $this->replaceTypes($methodsynopsis, $newTypes);
+            $newTypesXml = $this->replaceTypes($methodsynopsis, $newTypesByFunctionName[$functionNameOrMethodName]);
+            $contentBefore = $content;
             $content = \str_replace($methodSynopsisXml, $newTypesXml, $content);
             $content = \str_replace('</methodsynopsis>' . "\n\n", '</methodsynopsis>' . "\n", $content);
+            if ($content !== $contentBefore) {
+                $updatedEntries[$functionNameOrMethodName] = true;
+            }
         }
 
         foreach ($constructorSynopses as $constructorSynopsisXml) {
             $constructorsynopsis = $xmlParser->loadXml($constructorSynopsisXml);
-            if ($constructorsynopsis->findOne('methodname')->text() !== $functionNameOrMethodName) {
+            $functionNameOrMethodName = $constructorsynopsis->findOne('methodname')->text();
+            if (!isset($newTypesByFunctionName[$functionNameOrMethodName])) {
                 continue;
             }
 
-            $newTypesXml = $this->replaceTypes($constructorsynopsis, $newTypes);
+            $newTypesXml = $this->replaceTypes($constructorsynopsis, $newTypesByFunctionName[$functionNameOrMethodName]);
+            $contentBefore = $content;
             $content = \str_replace($constructorSynopsisXml, $newTypesXml, $content);
             $content = \str_replace('</constructorsynopsis>' . "\n\n", '</constructorsynopsis>' . "\n", $content);
+            if ($content !== $contentBefore) {
+                $updatedEntries[$functionNameOrMethodName] = true;
+            }
         }
 
-        if ($contentOrig !== $content) {
-            \file_put_contents($this->xml_file_path, $content);
-
-            return true;
-        }
-
-        return false;
+        return [$content, \count($updatedEntries)];
     }
 
     /**

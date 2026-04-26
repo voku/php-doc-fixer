@@ -99,11 +99,14 @@ final class PhpDocFixerCommand extends Command
 
         if ($autoFix && $errors !== []) {
             $updatedEntries = 0;
+            $errorsByPath = [];
             foreach ($errors as $functionName_or_classAndMethodName => $typesArray) {
-                $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($typesArray['path']);
-                if ($xmlFixer->fix($typesArray['phpStubTypes'], $functionName_or_classAndMethodName)) {
-                    $updatedEntries++;
-                }
+                $errorsByPath[$typesArray['path']][$functionName_or_classAndMethodName] = $typesArray['phpStubTypes'];
+            }
+
+            foreach ($errorsByPath as $pathTmp => $typesByName) {
+                $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
+                $updatedEntries += $xmlFixer->fixMany($typesByName);
             }
 
             $output->writeln($updatedEntries . ' entries updated');
@@ -149,7 +152,7 @@ final class PhpDocFixerCommand extends Command
             }
 
             if (
-                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
+                ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? '') !== ($types['return'] ?? '')
                 ||
                 ($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
             ) {

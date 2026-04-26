@@ -56,6 +56,24 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         static::assertSame('int', $PhpStubsInfo['imap_setflag_full']['params']['options']);
     }
 
+    public static function testPhpStubsReaderNormalizesRefinedPhpDocTypes(): void
+    {
+        $PhpStubsPath = __DIR__ . '/fixtures/stubs/refined-phpdoc-types/';
+        $phpTypesFromPhpStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader($PhpStubsPath);
+        $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
+
+        $expected = [
+            'return' => 'false|int',
+            'params' => [
+                'value'    => 'string',
+                'callback' => 'callable',
+                'key'      => 'int|string',
+            ],
+        ];
+
+        static::assertSame($expected, $PhpStubsInfo['refined_phpdoc_types']);
+    }
+
     public static function testPhpDocXmlReader(): void
     {
         $xmlPath = __DIR__ . '/fixtures/bcpow.xml';
