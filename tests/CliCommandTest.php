@@ -202,6 +202,18 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
     }
 
+    public function testPhpDocFixerCommandNormalizesArrayValueInfoByDefault(): void
+    {
+        $commandTester = new CommandTester(new PhpDocFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/doc-safe-array.xml',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/doc-safe-array',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
+
     public function testStaticAnalysisCommandSucceedsForMatchingFixture(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="function.doc-safe-array">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type>array</type><methodname>doc_safe_array</methodname>
+   <methodparam><type>array</type><parameter>items</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>
