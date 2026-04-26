@@ -15,7 +15,7 @@ final class XmlWriter
 
     /**
      * @param array $newTypes
-     * @param string $functionNameOrMethodName
+     * @param string $functionNameOrMethodName The function or method synopsis name to update.
      *
      * @return bool
      *
@@ -27,7 +27,7 @@ final class XmlWriter
     }
 
     /**
-     * @param array<string, array{return: string, params?: array<string, string>}> $newTypesByFunctionName
+     * @param array<string, array{return: string, params?: array<string, string>}> $newTypesByFunctionName Updates keyed by function or method synopsis name.
      */
     public function fixMany(array $newTypesByFunctionName): int
     {
