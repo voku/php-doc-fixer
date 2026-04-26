@@ -45,39 +45,39 @@ final class XmlReader
             $absoluteFilePath = $file->getPath() . \DIRECTORY_SEPARATOR . $fileName;
             $content = $file->getContents();
 
-            $contentMethodKeyword = 'methodsynopsis';
-            \preg_match('#<methodsynopsis>.*</methodsynopsis>#Uis', $content, $contentMethod);
-            $contentMethod = $contentMethod[0] ?? null;
+            $methodSynopses = $this->findSynopsisXml($content, 'methodsynopsis');
+            $constructorSynopses = $this->findSynopsisXml($content, 'constructorsynopsis');
 
-            $contentMethodOopKeyword = 'methodsynopsis';
-            \preg_match('#<methodsynopsis role="oop">.*</methodsynopsis>#Uis', $content, $contentMethodOop);
-            $contentMethodOop = $contentMethodOop[0] ?? null;
-
-            $contentConstructorKeyword = 'constructorsynopsis';
-            \preg_match('#<constructorsynopsis>.*</constructorsynopsis>#Uis', $content, $contentConstructor);
-            $contentConstructor = $contentConstructor[0] ?? null;
-
-            if (!$contentMethod && !$contentMethodOop && !$contentConstructor) {
+            if ($methodSynopses === [] && $constructorSynopses === []) {
                 continue;
             }
 
-            if ($contentMethod) {
-                $methodsynopsis = $xmlParser->loadXml($contentMethod);
-                $data[] = $this->findTypes($methodsynopsis, $absoluteFilePath, $contentMethodKeyword);
+            foreach ($methodSynopses as $methodSynopsisXml) {
+                $methodsynopsis = $xmlParser->loadXml($methodSynopsisXml);
+                $data[] = $this->findTypes($methodsynopsis, $absoluteFilePath, 'methodsynopsis');
             }
 
-            if ($contentMethodOop) {
-                $methodsynopsisOop = $xmlParser->loadXml($contentMethodOop);
-                $data[] = $this->findTypes($methodsynopsisOop, $absoluteFilePath, $contentMethodOopKeyword);
-            }
-
-            if ($contentConstructor) {
-                $constructorsynopsis = $xmlParser->loadXml($contentConstructor);
-                $data[] = $this->findTypes($constructorsynopsis, $absoluteFilePath, $contentConstructorKeyword);
+            foreach ($constructorSynopses as $constructorSynopsisXml) {
+                $constructorsynopsis = $xmlParser->loadXml($constructorSynopsisXml);
+                $data[] = $this->findTypes($constructorsynopsis, $absoluteFilePath, 'constructorsynopsis');
             }
         }
 
         return \array_merge([], ...$data);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function findSynopsisXml(string $content, string $xmlElement): array
+    {
+        \preg_match_all(
+            '#<' . $xmlElement . '(?:\s[^>]*)?>.*</' . $xmlElement . '>#Uis',
+            $content,
+            $matches
+        );
+
+        return $matches[0] ?? [];
     }
 
     /**

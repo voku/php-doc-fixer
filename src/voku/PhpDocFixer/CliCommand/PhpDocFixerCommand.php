@@ -118,7 +118,7 @@ final class PhpDocFixerCommand extends Command
 
                 if ($autoFix) {
                     $xmlFixer = new \voku\PhpDocFixer\XmlDocs\XmlWriter($pathTmp);
-                    $xmlFixer->fix($stubsInfo[$functionName_or_classAndMethodName]);
+                    $xmlFixer->fix($stubsInfo[$functionName_or_classAndMethodName], $functionName_or_classAndMethodName);
                 }
             }
         }

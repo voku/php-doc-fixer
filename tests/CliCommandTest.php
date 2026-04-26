@@ -39,6 +39,53 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('bcpow', $commandTester->getDisplay());
     }
 
+    public function testPhpDocFixerCommandFailsForProceduralSynopsisMismatchInMultiSynopsisFile(): void
+    {
+        $commandTester = new CommandTester(new PhpDocFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/multi-synopsis-invalid.xml',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/multi-synopsis',
+        ]);
+
+        static::assertSame(Command::FAILURE, $exitCode);
+        static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
+        static::assertStringContainsString('first_function', $commandTester->getDisplay());
+    }
+
+    public function testPhpDocFixerCommandAutoFixesMatchingSynopsisInMultiSynopsisFile(): void
+    {
+        $tempDirectory = \sys_get_temp_dir() . '/php-doc-fixer-' . \bin2hex(\random_bytes(8));
+        static::assertTrue(\mkdir($tempDirectory, 0777, true));
+
+        $tempPath = $tempDirectory . '/multi-synopsis-invalid.xml';
+        static::assertTrue(\copy(__DIR__ . '/fixtures/multi-synopsis-invalid.xml', $tempPath));
+
+        try {
+            $commandTester = new CommandTester(new PhpDocFixerCommand());
+            $exitCode = $commandTester->execute([
+                'path' => $tempPath,
+                '--auto-fix' => 'true',
+                '--stubs-path' => __DIR__ . '/fixtures/stubs/multi-synopsis',
+            ]);
+
+            static::assertSame(Command::FAILURE, $exitCode);
+            static::assertStringContainsString('<type>string</type><methodname>first_function</methodname>', (string) \file_get_contents($tempPath));
+            static::assertStringContainsString('<type>int</type><methodname>SecondClass::secondMethod</methodname>', (string) \file_get_contents($tempPath));
+
+            $commandTester = new CommandTester(new PhpDocFixerCommand());
+            $exitCode = $commandTester->execute([
+                'path' => $tempPath,
+                '--stubs-path' => __DIR__ . '/fixtures/stubs/multi-synopsis',
+            ]);
+
+            static::assertSame(Command::SUCCESS, $exitCode);
+            static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+        } finally {
+            \unlink($tempPath);
+            \rmdir($tempDirectory);
+        }
+    }
+
     public function testStaticAnalysisCommandSucceedsForMatchingFixture(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());

@@ -20,7 +20,7 @@ final class XmlWriter
      *
      * @phpstan-param array{return: string, params?: array<string, string>} $newTypes
      */
-    public function fix($newTypes): void
+    public function fix(array $newTypes, string $functionNameOrMethodName): void
     {
         $xmlParser = new \voku\helper\XmlDomParser();
         $xmlParser->autoRemoveXPathNamespaces();
@@ -31,55 +31,52 @@ final class XmlWriter
         }
         $contentOrig = $content;
 
-        \preg_match('#<methodsynopsis>.*</methodsynopsis>#Uis', $content, $contentMethod);
-        $contentMethod = $contentMethod[0] ?? null;
+        $methodSynopses = $this->findSynopsisXml($content, 'methodsynopsis');
+        $constructorSynopses = $this->findSynopsisXml($content, 'constructorsynopsis');
 
-        \preg_match('#<methodsynopsis role="oop">.*</methodsynopsis>#Uis', $content, $contentMethodOop);
-        $contentMethodOop = $contentMethodOop[0] ?? null;
-
-        \preg_match('#<constructorsynopsis>.*</constructorsynopsis>#Uis', $content, $contentConstructor);
-        $contentConstructor = $contentConstructor[0] ?? null;
-
-        if (!$contentMethod && !$contentMethodOop && !$contentConstructor) {
+        if ($methodSynopses === [] && $constructorSynopses === []) {
             return;
         }
 
-        if ($contentMethod) {
-            $methodsynopsis = $xmlParser->loadXml($contentMethod);
+        foreach ($methodSynopses as $methodSynopsisXml) {
+            $methodsynopsis = $xmlParser->loadXml($methodSynopsisXml);
+            if ($methodsynopsis->findOne('methodname')->text() !== $functionNameOrMethodName) {
+                continue;
+            }
+
             $newTypesXml = $this->replaceTypes($methodsynopsis, $newTypes);
-            $content = \str_replace(
-                $contentMethod,
-                $newTypesXml,
-                $content
-            );
+            $content = \str_replace($methodSynopsisXml, $newTypesXml, $content);
             $content = \str_replace('</methodsynopsis>' . "\n\n", '</methodsynopsis>' . "\n", $content);
         }
 
-        if ($contentMethodOop) {
-            $methodsynopsisOop = $xmlParser->loadXml($contentMethodOop);
-            $newTypesXml = $this->replaceTypes($methodsynopsisOop, $newTypes);
-            $content = \str_replace(
-                $contentMethodOop,
-                $newTypesXml,
-                $content
-            );
-            $content = \str_replace('</methodsynopsis>' . "\n\n", '</methodsynopsis>' . "\n", $content);
-        }
+        foreach ($constructorSynopses as $constructorSynopsisXml) {
+            $constructorsynopsis = $xmlParser->loadXml($constructorSynopsisXml);
+            if ($constructorsynopsis->findOne('methodname')->text() !== $functionNameOrMethodName) {
+                continue;
+            }
 
-        if ($contentConstructor) {
-            $constructorsynopsis = $xmlParser->loadXml($contentConstructor);
             $newTypesXml = $this->replaceTypes($constructorsynopsis, $newTypes);
-            $content = \str_replace(
-                $contentConstructor,
-                $newTypesXml,
-                $content
-            );
+            $content = \str_replace($constructorSynopsisXml, $newTypesXml, $content);
             $content = \str_replace('</constructorsynopsis>' . "\n\n", '</constructorsynopsis>' . "\n", $content);
         }
 
         if ($contentOrig !== $content) {
             \file_put_contents($this->xml_file_path, $content);
         }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function findSynopsisXml(string $content, string $xmlElement): array
+    {
+        \preg_match_all(
+            '#<' . $xmlElement . '(?:\s[^>]*)?>.*</' . $xmlElement . '>#Uis',
+            $content,
+            $matches
+        );
+
+        return $matches[0] ?? [];
     }
 
     /**

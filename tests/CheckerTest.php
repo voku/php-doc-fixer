@@ -77,6 +77,32 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         static::assertSame($expected, $phpDocXmlReaderInfo);
     }
 
+    public static function testPhpDocXmlReaderParsesAllSupportedSynopsesInOneFile(): void
+    {
+        $xmlPath = __DIR__ . '/fixtures/multi-synopsis.xml';
+        $phpDocXmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($xmlPath);
+        $phpDocXmlReaderInfo = self::removeLocalPathForTheTest($phpDocXmlReader->parse());
+
+        $expected = [
+            'first_function' => [
+                'absoluteFilePath' => 'php-doc-fixer/tests/fixtures/multi-synopsis.xml',
+                'return'           => 'string',
+                'params'           => [
+                    'input' => 'string',
+                ],
+            ],
+            'SecondClass::secondMethod' => [
+                'absoluteFilePath' => 'php-doc-fixer/tests/fixtures/multi-synopsis.xml',
+                'return'           => 'int',
+                'params'           => [
+                    'count' => 'int',
+                ],
+            ],
+        ];
+
+        static::assertSame($expected, $phpDocXmlReaderInfo);
+    }
+
     /**
      * @param array $result
      *
