@@ -8,11 +8,11 @@ This is a experiment! Lets check and fix the php documentation automatically.
 mkdir php-doc-workspace
 cd php-doc-workspace/
 
-git clone https://github.com/php/doc-en.git // required for the doc-en sync workflow
-git clone https://github.com/php/php-src.git // required for the doc-en sync workflow; this is the source of truth for synopsis updates
-git clone https://github.com/jetbrains/phpstorm-stubs.git // optional: useful for static analysis comparisons or alternative stub sources
-git clone https://github.com/vimeo/psalm.git // optional: only if you want to check it
-git clone https://github.com/phpstan/phpstan-src.git // optional: only if you want to check it
+git clone https://github.com/php/doc-en.git # required for the doc-en sync workflow
+git clone https://github.com/php/php-src.git # required for the doc-en sync workflow; this is the source of truth for synopsis updates
+git clone https://github.com/jetbrains/phpstorm-stubs.git # optional: useful for static analysis comparisons or alternative stub sources
+git clone https://github.com/vimeo/psalm.git # optional: only if you want to check it
+git clone https://github.com/phpstan/phpstan-src.git # optional: only if you want to check it
 git clone https://github.com/voku/php-doc-fixer.git
 
 cd php-doc-fixer/
