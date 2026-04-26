@@ -5,14 +5,30 @@ This is a experiment! Lets check and fix the php documentation automatically.
 
 ### install
 ```bash
-git clone https://github.com/php/doc-en.git // required for the doc-en sync workflow
-git clone https://github.com/php/php-src.git // required for the doc-en sync workflow; this is the source of truth for synopsis updates
-git clone https://github.com/jetbrains/phpstorm-stubs.git // optional: useful for static analysis comparisons or alternative stub sources
-git clone https://github.com/vimeo/psalm.git // optional: only if you want to check it
-git clone https://github.com/phpstan/phpstan-src.git // optional: only if you want to check it
+mkdir php-doc-workspace
+cd php-doc-workspace/
+
+git clone https://github.com/php/doc-en.git # required for the doc-en sync workflow
+git clone https://github.com/php/php-src.git # required for the doc-en sync workflow; this is the source of truth for synopsis updates
+git clone https://github.com/jetbrains/phpstorm-stubs.git # optional: useful for static analysis comparisons or alternative stub sources
+git clone https://github.com/vimeo/psalm.git # optional: only if you want to check it
+git clone https://github.com/phpstan/phpstan-src.git # optional: only if you want to check it
 git clone https://github.com/voku/php-doc-fixer.git
+
 cd php-doc-fixer/
 composer install --prefer-dist
+```
+
+Recommended directory layout:
+
+```text
+php-doc-workspace/
+├── doc-en/
+├── php-src/
+├── php-doc-fixer/
+├── phpstorm-stubs/   # optional
+├── phpstan-src/      # optional
+└── psalm/            # optional
 ```
 
 ### project shortcuts
@@ -29,6 +45,45 @@ The `run` command normalizes refined and pseudo-types back to manual-safe synops
 `fix-docs` re-checks the XML after updating files, so it exits successfully when all detected mismatches were applied automatically and reports the remaining count if manual follow-up is still needed. It can update both single types and union types in either direction when the XML synopsis and stub signature disagree.
 
 If the full `reference/` diff is too large for one review, run the same commands against extension or module subdirectories and open smaller pull requests, for example `../doc-en/reference/bc/` or `../doc-en/reference/mysqli/`.
+
+### full doc-en sync workflow (for a local coding agent)
+
+Use this when you want the agent to download the related repositories and apply all directly fixable synopsis updates from `php-src` into `php/doc-en`.
+
+```bash
+cd php-doc-workspace/php-doc-fixer/
+
+composer install --prefer-dist
+composer test
+
+# inspect all current mismatches
+composer scan-docs -- ../doc-en/reference/
+
+# apply all automatic fixes
+composer fix-docs -- ../doc-en/reference/
+
+# confirm what is still left afterwards
+composer scan-docs -- ../doc-en/reference/
+```
+
+Expected behavior:
+
+- `composer test` validates the fixer itself.
+- `composer scan-docs` reports mismatches between `php-src` stubs and the XML synopsis files in `doc-en/reference/`.
+- `composer fix-docs` updates directly fixable XML synopsis types in place and re-checks the result before exiting.
+- A final `composer scan-docs` shows the remaining manual follow-up items, if any.
+
+Suggested handoff for a local coding agent:
+
+- clone or update `doc-en`, `php-src`, and `php-doc-fixer` as sibling directories
+- run `composer install --prefer-dist` in `php-doc-fixer`
+- run `composer test`
+- run `composer scan-docs -- ../doc-en/reference/`
+- run `composer fix-docs -- ../doc-en/reference/`
+- run `composer scan-docs -- ../doc-en/reference/` again
+- review the diff in `../doc-en/reference/`
+- if the diff is too large, repeat the same workflow for smaller subdirectories such as `../doc-en/reference/bc/`
+- open the pull request in `php/doc-en`, not in `voku/php-doc-fixer`
 
 ### command for analysing static code analysis stubs (PHPStan, Psalm, ...)
 ```
