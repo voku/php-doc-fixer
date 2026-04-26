@@ -44,8 +44,8 @@ final class PhpDocFixerCommand extends Command
                 'remove-array-value-info',
                 null,
                 \Symfony\Component\Console\Input\InputOption::VALUE_OPTIONAL,
-                'Automatically convert e.g. int[] into array. (false or true)',
-                'false'
+                'Automatically convert e.g. int[] into array for manual-safe synopsis types. (false or true)',
+                'true'
             )->addOption(
                 'stubs-path',
                 null,

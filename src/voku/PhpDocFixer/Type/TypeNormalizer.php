@@ -15,8 +15,10 @@ final class TypeNormalizer
 
     public function normalize(string $type): string
     {
-        if (\strpos($type, '?') !== false) {
-            $type = \str_replace('?', '', $type);
+        $type = \trim($type);
+
+        if (isset($type[0]) && $type[0] === '?') {
+            $type = \trim(\substr($type, 1));
             $type .= '|null';
         }
 
@@ -88,11 +90,11 @@ final class TypeNormalizer
         $typePart = (string) \preg_replace('/\blist<.*>/', 'array', $typePart);
         $typePart = (string) \preg_replace('/\barray\{.*\}/', 'array', $typePart);
         $typePart = (string) \preg_replace('/\biterable<.*>/', 'iterable', $typePart);
-        $typePart = (string) \preg_replace('/\b(?:pure-)?callable\(.*\)/', 'callable', $typePart);
-        $typePart = (string) \preg_replace('/\bClosure\(.*\)/', 'callable', $typePart);
+        $typePart = (string) \preg_replace('/^(?:pure-)?callable\(.*\)(?::.+)?$/', 'callable', $typePart);
+        $typePart = (string) \preg_replace('/^Closure\(.*\)(?::.+)?$/', 'callable', $typePart);
         $typePart = (string) \preg_replace('/\bobject\{.*\}/', 'object', $typePart);
         $typePart = (string) \preg_replace('/\barray-key\b/', 'int|string', $typePart);
-        $typePart = (string) \preg_replace('/\bresource \(closed\)\b/', 'resource', $typePart);
+        $typePart = (string) \preg_replace('/^resource \(closed\)$/', 'resource', $typePart);
 
         if (\preg_match('/^[A-Za-z_][A-Za-z0-9_\\\\]*<.*>$/', $typePart)) {
             $typePart = (string) \preg_replace('/<.*>$/', '', $typePart);

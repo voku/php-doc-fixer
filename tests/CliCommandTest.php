@@ -202,6 +202,18 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
     }
 
+    public function testPhpDocFixerCommandNormalizesArrayValueInfoByDefault(): void
+    {
+        $commandTester = new CommandTester(new PhpDocFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/doc-safe-array.xml',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/doc-safe-array',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
+
     public function testStaticAnalysisCommandSucceedsForMatchingFixture(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
@@ -257,6 +269,18 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         $exitCode = $commandTester->execute([
             'path' => __DIR__ . '/fixtures/functionMap-native-refined-types.php',
             '--stubs-path' => __DIR__ . '/fixtures/stubs/native-types',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
+
+    public function testStaticAnalysisCommandNormalizesPhpStanPseudoTypesToNativeTypes(): void
+    {
+        $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/functionMap-phpstan-types.php',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/phpstan-types',
         ]);
 
         static::assertSame(Command::SUCCESS, $exitCode);

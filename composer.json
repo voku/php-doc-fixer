@@ -38,8 +38,8 @@
     },
     "scripts": {
         "test": "phpunit",
-        "scan-docs": "@php bin/phpdocfixer run",
-        "fix-docs": "@php bin/phpdocfixer run --auto-fix=true"
+        "scan-docs": "@php bin/phpdocfixer run --stubs-path=../php-src --stubs-file-extension=.stub.php",
+        "fix-docs": "@php bin/phpdocfixer run --auto-fix=true --stubs-path=../php-src --stubs-file-extension=.stub.php"
     },
     "bin": [
         "bin/phpdocfixer"
