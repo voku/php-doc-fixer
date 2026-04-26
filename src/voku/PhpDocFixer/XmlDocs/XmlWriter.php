@@ -15,6 +15,7 @@ final class XmlWriter
 
     /**
      * @param array $newTypes
+     * @param string $functionNameOrMethodName
      *
      * @return bool
      *
