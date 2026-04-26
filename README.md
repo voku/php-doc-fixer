@@ -12,7 +12,7 @@ git clone https://github.com/vimeo/psalm.git // optional: only if you want to ch
 git clone https://github.com/phpstan/phpstan-src.git // optional: only if you want to check it
 git clone https://github.com/voku/php-doc-fixer.git
 cd php-doc-fixer/
-composer update --prefer-dist
+composer install --prefer-dist
 ```
 
 ### command for analysing static code analysis stubs (PHPStan, Psalm, ...)
@@ -32,7 +32,7 @@ php bin/phpdocfixer static_analysis --stubs-path="../phpstorm-stubs/mysqli/" ../
 
 #### example: check types from PhpStorm stubs against static code analysis stubs from Psalm
 ```
-php bin/phpdocfixer static_analysis ../psalm/src/Psalm/Internal/CallMap.php
+php bin/phpdocfixer static_analysis ../psalm/dictionaries/CallMap_84.php
 ```
 
 

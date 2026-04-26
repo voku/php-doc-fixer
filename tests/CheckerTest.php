@@ -28,6 +28,34 @@ final class CheckerTest extends \PHPUnit\Framework\TestCase
         static::assertSame($expected, $PhpStubsInfo['mb_strpos']);
     }
 
+    public static function testPhpStubsReaderHandlesDeprecatedConstantsInCurrentStubs(): void
+    {
+        $PhpStubsPath = __DIR__ . '/../vendor/jetbrains/phpstorm-stubs/imap/';
+        $phpTypesFromPhpStubs = new \voku\PhpDocFixer\PhpStubs\PhpStubsReader($PhpStubsPath);
+
+        $deprecations = [];
+        \set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if (($severity & (\E_DEPRECATED | \E_USER_DEPRECATED)) !== 0) {
+                    $deprecations[] = $message;
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            $PhpStubsInfo = $phpTypesFromPhpStubs->parse();
+        } finally {
+            \restore_error_handler();
+        }
+
+        static::assertSame([], $deprecations);
+        static::assertSame('int', $PhpStubsInfo['imap_setflag_full']['params']['options']);
+    }
+
     public static function testPhpDocXmlReader(): void
     {
         $xmlPath = __DIR__ . '/fixtures/bcpow.xml';
