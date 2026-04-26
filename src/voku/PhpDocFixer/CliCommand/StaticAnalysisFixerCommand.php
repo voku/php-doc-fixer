@@ -70,7 +70,7 @@ final class StaticAnalysisFixerCommand extends Command
             $output->writeln('The path "' . $path . '" does not exists.');
             $output->writeln('-------------------------------');
 
-            return 2;
+            return self::INVALID;
         }
 
         $phpTypesSource = new \voku\PhpDocFixer\StaticCodeAnalysisStubs\StaticCodeAnalysisReader($realPath);
@@ -115,6 +115,10 @@ final class StaticAnalysisFixerCommand extends Command
             $output->writeln('----------------');
         }
 
-        return 0;
+        if ($errors !== []) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
     }
 }

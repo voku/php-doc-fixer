@@ -78,7 +78,7 @@ final class PhpDocFixerCommand extends Command
             $output->writeln('The path "' . $path . '" does not exists.');
             $output->writeln('-------------------------------');
 
-            return 2;
+            return self::INVALID;
         }
 
         $xmlReader = new \voku\PhpDocFixer\XmlDocs\XmlReader($realPath);
@@ -132,6 +132,10 @@ final class PhpDocFixerCommand extends Command
             $output->writeln('----------------');
         }
 
-        return 0;
+        if ($errors !== []) {
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
     }
 }
