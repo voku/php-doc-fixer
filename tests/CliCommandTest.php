@@ -101,6 +101,18 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('[received] => string', $commandTester->getDisplay());
     }
 
+    public function testPhpDocFixerCommandPrefersNativeTypesOverStubPhpDoc(): void
+    {
+        $commandTester = new CommandTester(new PhpDocFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/native-types.xml',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/native-types',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
+
     public function testStaticAnalysisCommandSucceedsForMatchingFixture(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
@@ -139,5 +151,17 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('reference_match', $commandTester->getDisplay());
         static::assertStringContainsString('[expected] => string', $commandTester->getDisplay());
         static::assertStringContainsString('[received] => string', $commandTester->getDisplay());
+    }
+
+    public function testStaticAnalysisCommandPrefersNativeTypesOverStubPhpDoc(): void
+    {
+        $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/functionMap-native-types.php',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/native-types',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
     }
 }
