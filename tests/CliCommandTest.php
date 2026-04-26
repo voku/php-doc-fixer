@@ -86,6 +86,21 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testPhpDocFixerCommandFailsForReferenceParamNameMismatch(): void
+    {
+        $commandTester = new CommandTester(new PhpDocFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/reference-matching-invalid.xml',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/reference-matching',
+        ]);
+
+        static::assertSame(Command::FAILURE, $exitCode);
+        static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
+        static::assertStringContainsString('reference_match', $commandTester->getDisplay());
+        static::assertStringContainsString('[expected] => string', $commandTester->getDisplay());
+        static::assertStringContainsString('[received] => string', $commandTester->getDisplay());
+    }
+
     public function testStaticAnalysisCommandSucceedsForMatchingFixture(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
@@ -109,5 +124,20 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertSame(Command::FAILURE, $exitCode);
         static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
         static::assertStringContainsString('mb_strpos', $commandTester->getDisplay());
+    }
+
+    public function testStaticAnalysisCommandFailsForReferenceParamNameMismatch(): void
+    {
+        $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/functionMap-reference-matching-invalid.php',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/reference-matching',
+        ]);
+
+        static::assertSame(Command::FAILURE, $exitCode);
+        static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
+        static::assertStringContainsString('reference_match', $commandTester->getDisplay());
+        static::assertStringContainsString('[expected] => string', $commandTester->getDisplay());
+        static::assertStringContainsString('[received] => string', $commandTester->getDisplay());
     }
 }

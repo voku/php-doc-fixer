@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.reference-match" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type>string</type><methodname>reference_match</methodname>
+   <methodparam><type>string</type><parameter>foo</parameter></methodparam>
+   <methodparam><type>string</type><parameter>bar</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>

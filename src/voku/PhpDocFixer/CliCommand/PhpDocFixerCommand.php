@@ -105,7 +105,7 @@ final class PhpDocFixerCommand extends Command
             if (
                 ($stubsInfo[$functionName_or_classAndMethodName]['return'] ?? []) !== ($types['return'] ?? [])
                 ||
-                (array_values($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? [])) !== (array_values($types['params'] ?? []))
+                ($stubsInfo[$functionName_or_classAndMethodName]['params'] ?? []) !== ($types['params'] ?? [])
             ) {
                 $pathTmp = $types['absoluteFilePath'];
                 unset($types['absoluteFilePath']);
