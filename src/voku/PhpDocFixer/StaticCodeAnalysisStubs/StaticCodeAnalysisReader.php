@@ -35,22 +35,7 @@ final class StaticCodeAnalysisReader
         $return = [];
         foreach ($data as $functionName => $info) {
             $returnType = array_shift($info);
-
-            if (strpos($returnType, '?') !== false) {
-                $returnType = str_replace('?', '', $returnType);
-                $returnType .= '|null';
-            }
-
-            $returnType = explode('|', $returnType);
-            foreach ($returnType as &$returnTypeInnerTmp) {
-                if ($this->removeArrayValueInfo) {
-                    $returnTypeInnerTmp = $this->removeArrayValueInfo($returnTypeInnerTmp);
-                }
-
-                $returnTypeInnerTmp = \ltrim($returnTypeInnerTmp, '\\');
-            }
-            sort($returnType);
-            $returnType = implode('|', $returnType);
+            $returnType = $this->normalizeType((string) $returnType);
 
             $return[$functionName]['return'] = $returnType;
             if ($return[$functionName]['return'] === '') {
@@ -58,21 +43,7 @@ final class StaticCodeAnalysisReader
             }
 
             foreach ($info as $paramName => $paramTypes) {
-                if (strpos($paramTypes, '?') !== false) {
-                    $paramTypes = str_replace('?', '', $paramTypes);
-                    $paramTypes .= '|null';
-                }
-
-                $paramTypes = explode('|', $paramTypes);
-                foreach ($paramTypes as &$paramTypeInnerTmp) {
-                    if ($this->removeArrayValueInfo) {
-                        $paramTypeInnerTmp = $this->removeArrayValueInfo($paramTypeInnerTmp);
-                    }
-
-                    $paramTypeInnerTmp = \ltrim($paramTypeInnerTmp, '\\');
-                }
-                sort($paramTypes);
-                $paramTypes = implode('|', $paramTypes);
+                $paramTypes = $this->normalizeType($paramTypes);
 
                 $return[$functionName]['params'][$paramName] = $paramTypes ?? '';
             }
@@ -97,5 +68,80 @@ final class StaticCodeAnalysisReader
         $phpdoc_type = (string) \preg_replace('#(list<.*>)#', 'array', $phpdoc_type);
 
         return $phpdoc_type;
+    }
+
+    private function normalizeType(string $type): string
+    {
+        if (\strpos($type, '?') !== false) {
+            $type = \str_replace('?', '', $type);
+            $type .= '|null';
+        }
+
+        $typeParts = \explode('|', $type);
+        $normalizedTypeParts = [];
+        foreach ($typeParts as $typePart) {
+            $normalizedTypePart = $this->normalizeTypePart($typePart);
+            foreach (\explode('|', $normalizedTypePart) as $normalizedTypePartInner) {
+                $normalizedTypePartInner = \trim($normalizedTypePartInner);
+                if ($normalizedTypePartInner === '') {
+                    continue;
+                }
+
+                $normalizedTypeParts[] = $normalizedTypePartInner;
+            }
+        }
+
+        if (\in_array('bool', $normalizedTypeParts, true)) {
+            $normalizedTypeParts = \array_values(
+                \array_filter(
+                    $normalizedTypeParts,
+                    static fn (string $normalizedTypePart): bool => $normalizedTypePart !== 'true' && $normalizedTypePart !== 'false'
+                )
+            );
+        } elseif (\in_array('true', $normalizedTypeParts, true) && \in_array('false', $normalizedTypeParts, true)) {
+            $normalizedTypeParts = \array_values(
+                \array_filter(
+                    $normalizedTypeParts,
+                    static fn (string $normalizedTypePart): bool => $normalizedTypePart !== 'true' && $normalizedTypePart !== 'false'
+                )
+            );
+            $normalizedTypeParts[] = 'bool';
+        }
+
+        $normalizedTypeParts = \array_values(\array_unique($normalizedTypeParts));
+        \sort($normalizedTypeParts);
+
+        return \implode('|', $normalizedTypeParts);
+    }
+
+    private function normalizeTypePart(string $typePart): string
+    {
+        $typePart = \trim($typePart);
+        $typePart = \ltrim($typePart, '\\');
+
+        if ($this->removeArrayValueInfo) {
+            $typePart = $this->removeArrayValueInfo($typePart);
+        }
+
+        $typePart = (string) \preg_replace('/\b(?:positive-int|negative-int|non-negative-int|non-positive-int)\b/', 'int', $typePart);
+        $typePart = (string) \preg_replace('/\bint<(?:[^>]+)>/', 'int', $typePart);
+        $typePart = (string) \preg_replace('/\bint-mask(?:-of)?<(?:[^>]+)>/', 'int', $typePart);
+        $typePart = (string) \preg_replace('/\b(?:non-empty-string|non-falsy-string|numeric-string|literal-string|lowercase-string|uppercase-string|class-string(?:<[^>]+>)?|callable-string|trait-string|interface-string|enum-string)\b/', 'string', $typePart);
+        $typePart = (string) \preg_replace('/\bnon-empty-array<.*>/', 'array', $typePart);
+        $typePart = (string) \preg_replace('/\barray<.*>/', 'array', $typePart);
+        $typePart = (string) \preg_replace('/\blist<.*>/', 'array', $typePart);
+        $typePart = (string) \preg_replace('/\barray\{.*\}/', 'array', $typePart);
+        $typePart = (string) \preg_replace('/\biterable<.*>/', 'iterable', $typePart);
+        $typePart = (string) \preg_replace('/\b(?:pure-)?callable\(.*\)/', 'callable', $typePart);
+        $typePart = (string) \preg_replace('/\bClosure\(.*\)/', 'callable', $typePart);
+        $typePart = (string) \preg_replace('/\bobject\{.*\}/', 'object', $typePart);
+        $typePart = (string) \preg_replace('/\barray-key\b/', 'int|string', $typePart);
+        $typePart = (string) \preg_replace('/\bresource \(closed\)\b/', 'resource', $typePart);
+
+        if (\preg_match('/^[A-Za-z_][A-Za-z0-9_\\\\]*<.*>$/', $typePart)) {
+            $typePart = (string) \preg_replace('/<.*>$/', '', $typePart);
+        }
+
+        return $typePart;
     }
 }

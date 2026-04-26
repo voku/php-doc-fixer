@@ -138,7 +138,7 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString('mb_strpos', $commandTester->getDisplay());
     }
 
-    public function testStaticAnalysisCommandFailsForReferenceParamNameMismatch(): void
+    public function testStaticAnalysisCommandIgnoresReferenceParamNameMismatch(): void
     {
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
         $exitCode = $commandTester->execute([
@@ -146,11 +146,8 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
             '--stubs-path' => __DIR__ . '/fixtures/stubs/reference-matching',
         ]);
 
-        static::assertSame(Command::FAILURE, $exitCode);
-        static::assertStringContainsString('1 errors found', $commandTester->getDisplay());
-        static::assertStringContainsString('reference_match', $commandTester->getDisplay());
-        static::assertStringContainsString('[expected] => string', $commandTester->getDisplay());
-        static::assertStringContainsString('[received] => string', $commandTester->getDisplay());
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
     }
 
     public function testStaticAnalysisCommandPrefersNativeTypesOverStubPhpDoc(): void
@@ -158,6 +155,18 @@ final class CliCommandTest extends \PHPUnit\Framework\TestCase
         $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
         $exitCode = $commandTester->execute([
             'path' => __DIR__ . '/fixtures/functionMap-native-types.php',
+            '--stubs-path' => __DIR__ . '/fixtures/stubs/native-types',
+        ]);
+
+        static::assertSame(Command::SUCCESS, $exitCode);
+        static::assertStringContainsString('0 errors found', $commandTester->getDisplay());
+    }
+
+    public function testStaticAnalysisCommandNormalizesRefinedTypesToNativeTypes(): void
+    {
+        $commandTester = new CommandTester(new StaticAnalysisFixerCommand());
+        $exitCode = $commandTester->execute([
+            'path' => __DIR__ . '/fixtures/functionMap-native-refined-types.php',
             '--stubs-path' => __DIR__ . '/fixtures/stubs/native-types',
         ]);
 
