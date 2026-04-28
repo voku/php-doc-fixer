@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.duplicate-synopsis-name" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type>string</type><methodname>duplicate_synopsis_name</methodname>
+   <methodparam><type>string</type><parameter>separator</parameter></methodparam>
+   <methodparam><type>array</type><parameter>array</parameter></methodparam>
+  </methodsynopsis>
+  <simpara>Alternative signature:</simpara>
+  <methodsynopsis role="procedural">
+   <type>string</type><methodname>duplicate_synopsis_name</methodname>
+   <methodparam><type>array</type><parameter>array</parameter></methodparam>
+  </methodsynopsis>
+  <simpara>Legacy signature:</simpara>
+  <methodsynopsis role="procedural">
+   <type>string</type><methodname>duplicate_synopsis_name</methodname>
+   <methodparam><type>array</type><parameter>array</parameter></methodparam>
+   <methodparam><type>string</type><parameter>separator</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>

@@ -136,7 +136,7 @@ final class XmlWriter
 
         if ($returnUnionNewCount === 0) {
             // TODO: error in stubs?
-        } else {
+        } elseif ($this->extractNormalizedSynopsisType($xmlParser) !== $newTypes['return']) {
             $returnUnionTypeFound = $xmlParser->findOneOrFalse('type.union') !== false;
 
             if ($returnUnionTypeFound) {
@@ -145,15 +145,7 @@ final class XmlWriter
                 $xml = (string) \preg_replace('#<type>.*</type><methodname>#Usi', '###NEW_TYPE###<methodname>', $xml);
             }
 
-            if (\count($returnUnionNew) > 1) {
-                $returnXmlTmp = '';
-                foreach ($returnUnionNew as $returnUnionNewSingle) {
-                    $returnXmlTmp .= '<type>' . $returnUnionNewSingle . '</type>';
-                }
-                $xml = \str_replace('###NEW_TYPE###', '<type class="union">' . $returnXmlTmp . '</type>', $xml);
-            } else {
-                $xml = \str_replace('###NEW_TYPE###', '<type>' . $returnUnionNew[0] . '</type>', $xml);
-            }
+            $xml = \str_replace('###NEW_TYPE###', $this->buildTypeXml($returnUnionNew), $xml);
         }
 
         if (isset($newTypes['params'])) {
@@ -175,6 +167,10 @@ final class XmlWriter
                         continue;
                     }
 
+                    if ($this->extractNormalizedMethodParamType($param) === $newTypes['params'][$paramName]) {
+                        continue;
+                    }
+
                     $paramUnionTypeFound = $param->findOneOrFalse('type.union') !== false;
 
                     if ($paramUnionTypeFound) {
@@ -183,15 +179,7 @@ final class XmlWriter
                         $xml = (string) \preg_replace('#<methodparam([^>]*)><type>.*</type><parameter>' . $escapedParamName . '#Usi', '<methodparam$1>###NEW_TYPE###<parameter>' . $paramName, $xml);
                     }
 
-                    if ($paramTypesNewCount > 1) {
-                        $paramXmlTmp = '';
-                        foreach ($paramTypesNew as $paramTypesNewSingle) {
-                            $paramXmlTmp .= '<type>' . $paramTypesNewSingle . '</type>';
-                        }
-                        $xml = \str_replace('###NEW_TYPE###', '<type class="union">' . $paramXmlTmp . '</type>', $xml);
-                    } else {
-                        $xml = \str_replace('###NEW_TYPE###', '<type>' . $paramTypesNew[0] . '</type>', $xml);
-                    }
+                    $xml = \str_replace('###NEW_TYPE###', $this->buildTypeXml($paramTypesNew), $xml);
                 }
             }
         }
@@ -202,5 +190,68 @@ final class XmlWriter
             ['<void />'],
             $xml
         );
+    }
+
+    /**
+     * @param array<int, string> $types
+     */
+    private function buildTypeXml(array $types): string
+    {
+        if (\count($types) <= 1) {
+            return '<type>' . $types[0] . '</type>';
+        }
+
+        $typeXml = '';
+        foreach ($types as $type) {
+            $typeXml .= '<type>' . $type . '</type>';
+        }
+
+        return '<type class="union">' . $typeXml . '</type>';
+    }
+
+    private function extractNormalizedSynopsisType(\voku\helper\XmlDomParser $xmlParser): string
+    {
+        $types = [];
+        $typeNodes = $xmlParser->findMultiOrFalse('methodsynopsis > type.union > type');
+        if ($typeNodes === false) {
+            $typeNodes = $xmlParser->findMultiOrFalse('constructorsynopsis > type.union > type');
+        }
+        if ($typeNodes !== false) {
+            foreach ($typeNodes as $typeNode) {
+                $types[] = $typeNode->text();
+            }
+        } elseif (($typeNode = $xmlParser->findOneOrFalse('methodsynopsis > type')) !== false) {
+            $types[] = $typeNode->text();
+        } elseif (($typeNode = $xmlParser->findOneOrFalse('constructorsynopsis > type')) !== false) {
+            $types[] = $typeNode->text();
+        }
+
+        return $this->normalizeTypeList($types);
+    }
+
+    private function extractNormalizedMethodParamType($xmlParser): string
+    {
+        $types = [];
+        $typeNodes = $xmlParser->findMultiOrFalse('methodparam > type.union > type');
+        if ($typeNodes !== false) {
+            foreach ($typeNodes as $typeNode) {
+                $types[] = $typeNode->text();
+            }
+        } elseif (($typeNode = $xmlParser->findOneOrFalse('methodparam > type')) !== false) {
+            $types[] = $typeNode->text();
+        }
+
+        return $this->normalizeTypeList($types);
+    }
+
+    /**
+     * @param array<int, string> $types
+     */
+    private function normalizeTypeList(array $types): string
+    {
+        $types = \array_values(\array_unique($types));
+        \sort($types);
+
+        return \implode('|', $types);
     }
 }

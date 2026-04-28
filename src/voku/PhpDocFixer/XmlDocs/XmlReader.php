@@ -52,14 +52,47 @@ final class XmlReader
                 continue;
             }
 
+            $fileData = [];
+            $duplicateNames = [];
+
             foreach ($methodSynopses as $methodSynopsisXml) {
                 $methodsynopsis = $xmlParser->loadXml($methodSynopsisXml);
-                $data[] = $this->findTypes($methodsynopsis, $absoluteFilePath, 'methodsynopsis');
+                $synopsisData = $this->findTypes($methodsynopsis, $absoluteFilePath, 'methodsynopsis');
+                $name = \array_key_first($synopsisData);
+                if ($name === null) {
+                    continue;
+                }
+
+                if (isset($fileData[$name])) {
+                    $duplicateNames[$name] = true;
+                    continue;
+                }
+
+                $fileData[$name] = $synopsisData;
             }
 
             foreach ($constructorSynopses as $constructorSynopsisXml) {
                 $constructorsynopsis = $xmlParser->loadXml($constructorSynopsisXml);
-                $data[] = $this->findTypes($constructorsynopsis, $absoluteFilePath, 'constructorsynopsis');
+                $synopsisData = $this->findTypes($constructorsynopsis, $absoluteFilePath, 'constructorsynopsis');
+                $name = \array_key_first($synopsisData);
+                if ($name === null) {
+                    continue;
+                }
+
+                if (isset($fileData[$name])) {
+                    $duplicateNames[$name] = true;
+                    continue;
+                }
+
+                $fileData[$name] = $synopsisData;
+            }
+
+            foreach ($fileData as $name => $synopsisData) {
+                if (isset($duplicateNames[$name])) {
+                    continue;
+                }
+
+                $data[] = $synopsisData;
             }
         }
 

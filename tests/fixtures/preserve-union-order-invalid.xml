@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.preserve-union-order" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type class="union"><type>string</type><type>false</type></type><methodname>preserve_union_order</methodname>
+   <methodparam><type class="union"><type>string</type><type>int</type></type><parameter>preserve</parameter></methodparam>
+   <methodparam><type>int</type><parameter>change</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>

@@ -53,6 +53,10 @@ final class TypeNormalizer
             $normalizedTypeParts[] = 'bool';
         }
 
+        if (\in_array('mixed', $normalizedTypeParts, true)) {
+            return 'mixed';
+        }
+
         $normalizedTypeParts = \array_values(\array_unique($normalizedTypeParts));
         \sort($normalizedTypeParts);
 

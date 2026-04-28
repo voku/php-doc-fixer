@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<refentry xml:id="function.mixed-null-is-mixed" xmlns="http://docbook.org/ns/docbook">
+ <refsect1 role="description">
+  <methodsynopsis role="procedural">
+   <type class="union"><type>mixed</type><type>null</type></type><methodname>mixed_null_is_mixed</methodname>
+   <methodparam><type class="union"><type>mixed</type><type>null</type></type><parameter>value1</parameter></methodparam>
+   <methodparam><type class="union"><type>mixed</type><type>null</type></type><parameter>value2</parameter></methodparam>
+  </methodsynopsis>
+ </refsect1>
+</refentry>
