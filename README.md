@@ -1,7 +1,9 @@
 
 # ***PHP-Documentation-Check***
 
-This is a experiment! Lets check and fix the php documentation automatically.
+This project compares PHP function and method signatures from different sources and can automatically update XML synopsis types in `php/doc-en`.
+
+The main goal is to create small, reviewable pull requests for the `php/doc-en` repository, using `php-src` stubs as the source of truth for manual pages.
 
 ### install
 ```bash
@@ -31,6 +33,31 @@ php-doc-workspace/
 └── psalm/            # optional
 ```
 
+### supported checks and sources
+
+This repository supports two comparison modes:
+
+1. **Documentation sync (`run`)**
+   - compares XML synopsis types from `php/doc-en/reference/`
+   - against PHP stub files from a selected stub source
+   - can optionally auto-fix directly safe XML updates
+
+2. **Static analysis comparison (`static_analysis`)**
+   - compares static-analysis call maps such as PHPStan or Psalm
+   - against a selected stub source
+   - reports mismatches, but does not edit files
+
+Recommended source choices:
+
+| Use case | Compare | Recommended source of truth |
+| --- | --- | --- |
+| Update `php/doc-en` manual pages | `doc-en/reference/` vs stubs | `php-src/*.stub.php` |
+| Compare PHPStan call maps | `phpstan-src/resources/functionMap.php` vs stubs | `php-src/*.stub.php` or PhpStorm stubs |
+| Compare Psalm call maps | `psalm/dictionaries/CallMap_84.php` vs stubs | PhpStorm stubs or `php-src/*.stub.php` |
+| Explore alternative stub differences | static-analysis maps vs stubs | `phpstorm-stubs/*.php` |
+
+For `php/doc-en` pull requests, use `php-src` as the source of truth.
+
 ### project shortcuts
 ```bash
 composer test
@@ -45,6 +72,31 @@ The `run` command normalizes refined and pseudo-types back to manual-safe synops
 `fix-docs` re-checks the XML after updating files, so it exits successfully when all detected mismatches were applied automatically and reports the remaining count if manual follow-up is still needed. It can update both single types and union types in either direction when the XML synopsis and stub signature disagree.
 
 If the full `reference/` diff is too large for one review, run the same commands against extension or module subdirectories and open smaller pull requests, for example `../doc-en/reference/bc/` or `../doc-en/reference/mysqli/`.
+
+### recommended workflow for reviewable `php/doc-en` pull requests
+
+Use this workflow when the goal is to fix the PHP manual step by step:
+
+1. work in a shared parent directory with `doc-en`, `php-src`, and `php-doc-fixer` as sibling directories
+2. run `composer install --prefer-dist`
+3. run `composer test`
+4. pick one manageable target:
+   - all of `../doc-en/reference/` for a broad audit
+   - or one module such as `../doc-en/reference/bc/`, `../doc-en/reference/mysqli/`, `../doc-en/reference/array/`
+5. run `composer scan-docs -- <target>`
+6. run `composer fix-docs -- <target>`
+7. run `composer scan-docs -- <target>` again
+8. review the XML diff in `../doc-en`
+9. keep only a reviewable scope in the `php/doc-en` branch
+10. open the pull request in `php/doc-en`, not in `voku/php-doc-fixer`
+
+Practical guidance:
+
+- prefer one extension or one focused topic per PR
+- let `fix-docs` apply the straightforward synopsis changes first
+- use the second scan output as the list of remaining manual follow-up items
+- if a directory still produces too many changes, narrow the target again
+- keep this repository unchanged unless you are improving the fixer or its documentation
 
 ### full doc-en sync workflow (for a local coding agent)
 
@@ -107,6 +159,12 @@ php bin/phpdocfixer static_analysis --stubs-path="../phpstorm-stubs/mysqli/" ../
 php bin/phpdocfixer static_analysis ../psalm/dictionaries/CallMap_84.php
 ```
 
+Notes:
+
+- `static_analysis` defaults to `vendor/jetbrains/phpstorm-stubs/` when `--stubs-path` is omitted
+- `static_analysis` defaults to `--stubs-file-extension=".php"`
+- parameter names are ignored in static-analysis mode; parameter type order is compared
+
 
 ### command for analysing and fixing the php documentation
 ```
@@ -128,3 +186,10 @@ composer fix-docs -- ../doc-en/reference/
 ```
 php bin/phpdocfixer run --auto-fix="true" --stubs-path="../php-src/" --stubs-file-extension=".stub.php" ../doc-en/reference/bc/
 ```
+
+Notes:
+
+- `run` defaults to `vendor/jetbrains/phpstorm-stubs/` when `--stubs-path` is omitted
+- for `php/doc-en` work, pass `--stubs-path="../php-src/" --stubs-file-extension=".stub.php"` or use the composer shortcuts
+- `run` compares both return types and parameter names/types
+- when `--auto-fix="true"` is enabled, the command re-scans after writing files and reports the remaining mismatch count
